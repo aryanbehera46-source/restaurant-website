@@ -73,6 +73,15 @@ document.addEventListener("DOMContentLoaded", function () {
             alert("Please select a date.");
             return;
         }
+        const selectedDate = new Date(`${date}T00:00:00`);
+const today = new Date();
+
+today.setHours(0, 0, 0, 0);
+
+if (selectedDate < today) {
+    alert("Please select today or a future date.");
+    return;
+}
 
         if (!time) {
             alert("Please select a time.");
