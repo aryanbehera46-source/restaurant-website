@@ -238,7 +238,7 @@ app.use(
 
 const configuredOrigins =
     String(
-        process.env.CORS_ALLOWED_ORIGINS || ""
+        process.env.CORS_ALLOWED_ORIGINS || "https://aryanbehera46-source.github.io"
     )
         .split(",")
         .map(
