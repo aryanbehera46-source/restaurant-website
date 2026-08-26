@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     console.log("SCRIPT.JS LOADED");
 
-    const API_URL = "http://localhost:5001";
+    const API_URL = "https://royal-table-api.onrender.com";
 
     let allMenuItems = [];
     let activeCategory = "All";
