@@ -105,6 +105,14 @@ if (
 // DATABASE
 // ==================================================
 
+console.log("DB_PATH:", DB_PATH);
+console.log("DB directory:", path.dirname(DB_PATH));
+console.log("Current working directory:", process.cwd());
+console.log(
+    "Database directory exists:",
+    require("fs").existsSync(path.dirname(DB_PATH))
+);
+
 const db =
     new Database(
         DB_PATH
