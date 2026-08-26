@@ -13,7 +13,7 @@ services:
       - key: PORT
         value: 10000
       - key: DB_PATH
-        value: restaurant.db
+        value: /tmp/restaurant.db
       - key: RESTAURANT_CAPACITY
         value: 50
       - key: ADMIN_USERNAME
