@@ -30,10 +30,12 @@ document.addEventListener("DOMContentLoaded", function () {
             );
 
             if (!response.ok) {
+
                 throw new Error(
                     "Failed to load menu. Server returned " +
                     response.status
                 );
+
             }
 
             const result = await response.json();
@@ -41,34 +43,50 @@ document.addEventListener("DOMContentLoaded", function () {
             console.log("MENU RESPONSE:", result);
 
             if (!result.success) {
+
                 throw new Error(
                     result.message ||
                     "Unable to load menu."
                 );
+
             }
 
             allMenuItems =
-                result.menu ||
-                result.menuItems ||
-                [];
+                Array.isArray(result.menu)
+                    ? result.menu
+                    : Array.isArray(result.menuItems)
+                        ? result.menuItems
+                        : [];
+
+            if (!Array.isArray(allMenuItems)) {
+
+                throw new Error(
+                    "Invalid menu data received from server."
+                );
+
+            }
 
             console.log(
                 "MENU ITEMS:",
                 allMenuItems
             );
 
+
             renderCategoryFilters(
                 allMenuItems
             );
+
 
             renderFullMenu(
                 allMenuItems,
                 activeCategory
             );
 
+
             renderSignatureDishes(
                 allMenuItems
             );
+
 
         } catch (error) {
 
@@ -85,13 +103,29 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     // ==================================================
+    // ITEM AVAILABILITY
+    // ==================================================
+
+    function isItemAvailable(item) {
+
+        return (
+            item.available === true ||
+            Number(item.available) === 1
+        );
+
+    }
+
+
+    // ==================================================
     // CREATE DYNAMIC CATEGORY FILTERS
     // ==================================================
 
     function renderCategoryFilters(menuItems) {
 
         const menuList =
-            document.querySelector(".menu-list");
+            document.querySelector(
+                ".menu-list"
+            );
 
         if (!menuList) {
 
@@ -103,23 +137,29 @@ document.addEventListener("DOMContentLoaded", function () {
 
         }
 
+
         const existingFilter =
             document.querySelector(
                 ".dynamic-menu-filters"
             );
 
         if (existingFilter) {
+
             existingFilter.remove();
+
         }
+
 
         const availableItems =
             menuItems.filter(
                 item =>
-                    Number(item.available) === 1
+                    isItemAvailable(item)
             );
+
 
         const categories = [
             ...new Set(
+
                 availableItems
                     .map(
                         item =>
@@ -132,8 +172,10 @@ document.addEventListener("DOMContentLoaded", function () {
                         category =>
                             category.length > 0
                     )
+
             )
         ];
+
 
         const filterContainer =
             document.createElement("div");
@@ -141,29 +183,36 @@ document.addEventListener("DOMContentLoaded", function () {
         filterContainer.className =
             "dynamic-menu-filters";
 
+
         const allButton =
             createCategoryButton(
                 "All",
                 activeCategory === "All"
             );
 
+
         filterContainer.appendChild(
             allButton
         );
 
-        categories.forEach(category => {
 
-            const button =
-                createCategoryButton(
-                    category,
-                    activeCategory === category
+        categories.forEach(
+            category => {
+
+                const button =
+                    createCategoryButton(
+                        category,
+                        activeCategory === category
+                    );
+
+
+                filterContainer.appendChild(
+                    button
                 );
 
-            filterContainer.appendChild(
-                button
-            );
+            }
+        );
 
-        });
 
         menuList.parentNode.insertBefore(
             filterContainer,
@@ -183,21 +232,30 @@ document.addEventListener("DOMContentLoaded", function () {
     ) {
 
         const button =
-            document.createElement("button");
+            document.createElement(
+                "button"
+            );
+
 
         button.type = "button";
+
 
         button.className =
             "menu-category-button";
 
+
         if (isActive) {
 
-            button.classList.add("active");
+            button.classList.add(
+                "active"
+            );
 
         }
 
+
         button.textContent =
             category;
+
 
         button.addEventListener(
             "click",
@@ -206,21 +264,26 @@ document.addEventListener("DOMContentLoaded", function () {
                 activeCategory =
                     category;
 
+
                 document
                     .querySelectorAll(
                         ".menu-category-button"
                     )
-                    .forEach(item => {
+                    .forEach(
+                        item => {
 
-                        item.classList.remove(
-                            "active"
-                        );
+                            item.classList.remove(
+                                "active"
+                            );
 
-                    });
+                        }
+                    );
+
 
                 button.classList.add(
                     "active"
                 );
+
 
                 renderFullMenu(
                     allMenuItems,
@@ -229,6 +292,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             }
         );
+
 
         return button;
 
@@ -249,17 +313,23 @@ document.addEventListener("DOMContentLoaded", function () {
                 ".menu-list"
             );
 
+
         if (!menuList) {
+
             return;
+
         }
+
 
         const availableItems =
             menuItems.filter(
                 item =>
-                    Number(item.available) === 1
+                    isItemAvailable(item)
             );
 
+
         let filteredItems;
+
 
         if (category === "All") {
 
@@ -279,7 +349,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
         }
 
-        if (filteredItems.length === 0) {
+
+        if (
+            filteredItems.length === 0
+        ) {
 
             menuList.innerHTML = `
 
@@ -297,37 +370,55 @@ document.addEventListener("DOMContentLoaded", function () {
 
         }
 
+
         const grouped = {};
 
-        filteredItems.forEach(item => {
 
-            const itemCategory =
-                String(
-                    item.category ||
-                    "Other"
-                ).trim();
+        filteredItems.forEach(
+            item => {
 
-            if (!grouped[itemCategory]) {
-                grouped[itemCategory] = [];
+                const itemCategory =
+                    String(
+                        item.category ||
+                        "Other"
+                    ).trim();
+
+
+                if (
+                    !grouped[itemCategory]
+                ) {
+
+                    grouped[itemCategory] =
+                        [];
+
+                }
+
+
+                grouped[itemCategory].push(
+                    item
+                );
+
             }
+        );
 
-            grouped[itemCategory].push(item);
-
-        });
 
         menuList.innerHTML = "";
+
 
         Object.entries(grouped)
             .forEach(
                 ([itemCategory, items]) => {
+
 
                     const heading =
                         document.createElement(
                             "div"
                         );
 
+
                     heading.className =
                         "menu-category-heading";
+
 
                     heading.innerHTML = `
 
@@ -339,57 +430,66 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     `;
 
+
                     menuList.appendChild(
                         heading
                     );
 
-                    items.forEach(item => {
 
-                        const menuItem =
-                            document.createElement(
-                                "div"
+                    items.forEach(
+                        item => {
+
+
+                            const menuItem =
+                                document.createElement(
+                                    "div"
+                                );
+
+
+                            menuItem.className =
+                                "menu-item";
+
+
+                            menuItem.innerHTML = `
+
+                                <div>
+
+                                    <h3>
+                                        ${escapeHtml(
+                                            item.name
+                                        )}
+                                    </h3>
+
+                                    <p>
+                                        ${
+                                            item.description
+                                                ? escapeHtml(
+                                                    item.description
+                                                )
+                                                : ""
+                                        }
+                                    </p>
+
+                                </div>
+
+
+                                <span>
+
+                                    ${formatCurrency(
+                                        item.price
+                                    )}
+
+                                </span>
+
+                            `;
+
+
+                            menuList.appendChild(
+                                menuItem
                             );
 
-                        menuItem.className =
-                            "menu-item";
-
-                        menuItem.innerHTML = `
-
-                            <div>
-
-                                <h3>
-                                    ${escapeHtml(
-                                        item.name
-                                    )}
-                                </h3>
-
-                                <p>
-                                    ${
-                                        item.description
-                                            ? escapeHtml(
-                                                item.description
-                                            )
-                                            : ""
-                                    }
-                                </p>
-
-                            </div>
-
-                            <span>
-
-                                ${formatCurrency(
-                                    item.price
-                                )}
-
-                            </span>
-
-                        `;
-
-                        menuList.appendChild(
-                            menuItem
-                        );
-
-                    });
+                        }
+                    );
 
                 }
             );
@@ -410,20 +510,28 @@ document.addEventListener("DOMContentLoaded", function () {
                 ".dish-grid"
             );
 
+
         if (!dishGrid) {
+
             return;
+
         }
+
 
         const availableItems =
             menuItems.filter(
                 item =>
-                    Number(item.available) === 1
+                    isItemAvailable(item)
             );
+
 
         const signatureItems =
             availableItems.slice(0, 3);
 
-        if (signatureItems.length === 0) {
+
+        if (
+            signatureItems.length === 0
+        ) {
 
             dishGrid.innerHTML = `
 
@@ -441,73 +549,85 @@ document.addEventListener("DOMContentLoaded", function () {
 
         }
 
+
         dishGrid.innerHTML = "";
 
-        signatureItems.forEach(item => {
 
-            const card =
-                document.createElement(
-                    "article"
+        signatureItems.forEach(
+            item => {
+
+
+                const card =
+                    document.createElement(
+                        "article"
+                    );
+
+
+                card.className =
+                    "dish-card";
+
+
+                const image =
+                    item.image &&
+                    String(item.image).trim()
+                        ? item.image
+                        : "https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=1000&q=80";
+
+
+                card.innerHTML = `
+
+                    <img
+                        src="${escapeAttribute(
+                            image
+                        )}"
+                        alt="${escapeAttribute(
+                            item.name
+                        )}"
+                        loading="lazy"
+                        onerror="
+                            this.onerror = null;
+                            this.src = 'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=1000&q=80';
+                        "
+                    >
+
+
+                    <div class="dish-info">
+
+                        <h3>
+                            ${escapeHtml(
+                                item.name
+                            )}
+                        </h3>
+
+
+                        <p>
+                            ${
+                                item.description
+                                    ? escapeHtml(
+                                        item.description
+                                    )
+                                    : "Freshly prepared by our kitchen."
+                            }
+                        </p>
+
+
+                        <span>
+                            ${formatCurrency(
+                                item.price
+                            )}
+                        </span>
+
+                    </div>
+
+                `;
+
+
+                dishGrid.appendChild(
+                    card
                 );
 
-            card.className =
-                "dish-card";
-
-            const image =
-                item.image &&
-                String(item.image).trim()
-                    ? item.image
-                    : "https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=1000&q=80";
-
-            card.innerHTML = `
-
-                <img
-                    src="${escapeAttribute(
-                        image
-                    )}"
-                    alt="${escapeAttribute(
-                        item.name
-                    )}"
-                    loading="lazy"
-                    onerror="
-                        this.onerror=null;
-                        this.src='https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=1000&q=80';
-                    "
-                >
-
-                <div class="dish-info">
-
-                    <h3>
-                        ${escapeHtml(
-                            item.name
-                        )}
-                    </h3>
-
-                    <p>
-                        ${
-                            item.description
-                                ? escapeHtml(
-                                    item.description
-                                )
-                                : "Freshly prepared by our kitchen."
-                        }
-                    </p>
-
-                    <span>
-                        ${formatCurrency(
-                            item.price
-                        )}
-                    </span>
-
-                </div>
-
-            `;
-
-            dishGrid.appendChild(
-                card
-            );
-
-        });
+            }
+        );
 
     }
 
@@ -522,6 +642,7 @@ document.addEventListener("DOMContentLoaded", function () {
             document.querySelector(
                 ".menu-list"
             );
+
 
         if (menuList) {
 
@@ -539,10 +660,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
         }
 
+
         const dishGrid =
             document.querySelector(
                 ".dish-grid"
             );
+
 
         if (dishGrid) {
 
@@ -572,6 +695,7 @@ document.addEventListener("DOMContentLoaded", function () {
             ".reservation-form"
         );
 
+
     if (!reservationForm) {
 
         console.error(
@@ -584,10 +708,12 @@ document.addEventListener("DOMContentLoaded", function () {
             "RESERVATION FORM FOUND"
         );
 
+
         const dateInput =
             document.querySelector(
                 "#date"
             );
+
 
         if (dateInput) {
 
@@ -596,15 +722,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
         }
 
+
         reservationForm.addEventListener(
             "submit",
-            async function(event) {
+            async function (event) {
 
                 event.preventDefault();
+
 
                 console.log(
                     "RESERVATION BUTTON CLICKED"
                 );
+
 
                 const name =
                     document
@@ -613,6 +742,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         .trim() ||
                     "";
 
+
                 const email =
                     document
                         .querySelector("#email")
@@ -620,17 +750,20 @@ document.addEventListener("DOMContentLoaded", function () {
                         .trim() ||
                     "";
 
+
                 const date =
                     document
                         .querySelector("#date")
                         ?.value ||
                     "";
 
+
                 const time =
                     document
                         .querySelector("#time")
                         ?.value ||
                     "";
+
 
                 const guests =
                     Number(
@@ -640,6 +773,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         0
                     );
 
+
                 const phone =
                     document
                         .querySelector("#phone")
@@ -647,12 +781,18 @@ document.addEventListener("DOMContentLoaded", function () {
                         .trim() ||
                     "";
 
+
                 const request =
                     document
                         .querySelector("#message")
                         ?.value
                         .trim() ||
                     "";
+
+
+                // ==========================================
+                // VALIDATION
+                // ==========================================
 
                 if (!name) {
 
@@ -664,8 +804,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 }
 
+
                 const emailPattern =
                     /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 
                 if (
                     !emailPattern.test(email)
@@ -679,6 +821,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 }
 
+
                 if (!date) {
 
                     alert(
@@ -689,13 +832,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 }
 
+
                 const selectedDate =
                     new Date(
                         `${date}T00:00:00`
                     );
 
+
                 const today =
                     new Date();
+
 
                 today.setHours(
                     0,
@@ -703,6 +849,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     0,
                     0
                 );
+
 
                 if (
                     selectedDate < today
@@ -716,6 +863,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 }
 
+
                 if (!time) {
 
                     alert(
@@ -725,6 +873,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     return;
 
                 }
+
 
                 if (
                     guests < 1 ||
@@ -739,6 +888,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 }
 
+
                 if (
                     !/^[0-9]{10}$/.test(phone)
                 ) {
@@ -751,15 +901,22 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 }
 
+
+                // ==========================================
+                // SUBMIT BUTTON
+                // ==========================================
+
                 const submitButton =
                     reservationForm.querySelector(
-                        ".submit-button"
+                        'button[type="submit"], .submit-button'
                     );
+
 
                 const originalText =
                     submitButton
                         ? submitButton.textContent
                         : "";
+
 
                 if (submitButton) {
 
@@ -771,12 +928,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 }
 
+
+                // ==========================================
+                // SEND RESERVATION
+                // ==========================================
+
                 try {
 
                     const response =
                         await fetch(
                             `${API_URL}/reservations`,
                             {
+
                                 method: "POST",
 
                                 headers: {
@@ -798,10 +961,13 @@ document.addEventListener("DOMContentLoaded", function () {
                                             request
 
                                     })
+
                             }
                         );
 
+
                     let result;
+
 
                     try {
 
@@ -814,6 +980,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     }
 
+
+                    console.log(
+                        "RESERVATION RESPONSE:",
+                        result
+                    );
+
+
                     if (!response.ok) {
 
                         throw new Error(
@@ -823,11 +996,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     }
 
+
                     if (result.success) {
 
+
                         // ==========================================
-                        // SHOW RESERVATION CONFIRMATION
-                        // INCLUDING RESERVATION ID
+                        // SHOW CONFIRMATION
                         // ==========================================
 
                         showReservationConfirmation({
@@ -842,7 +1016,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
                         });
 
+
                         reservationForm.reset();
+
 
                         if (dateInput) {
 
@@ -850,6 +1026,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                 getTodayDate();
 
                         }
+
 
                     } else {
 
@@ -860,6 +1037,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     }
 
+
                 } catch (error) {
 
                     console.error(
@@ -867,10 +1045,12 @@ document.addEventListener("DOMContentLoaded", function () {
                         error
                     );
 
+
                     alert(
                         error.message ||
                         "Could not connect to the reservation server."
                     );
+
 
                 } finally {
 
@@ -905,20 +1085,24 @@ document.addEventListener("DOMContentLoaded", function () {
                 "#confirm-name"
             );
 
+
         const confirmGuests =
             document.querySelector(
                 "#confirm-guests"
             );
+
 
         const confirmDate =
             document.querySelector(
                 "#confirm-date"
             );
 
+
         const confirmTime =
             document.querySelector(
                 "#confirm-time"
             );
+
 
         if (confirmName) {
 
@@ -927,12 +1111,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
         }
 
+
         if (confirmGuests) {
 
             confirmGuests.textContent =
                 reservation.guests;
 
         }
+
 
         if (confirmDate) {
 
@@ -942,6 +1128,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 );
 
         }
+
 
         if (confirmTime) {
 
@@ -963,10 +1150,6 @@ document.addEventListener("DOMContentLoaded", function () {
             );
 
 
-        // If HTML does not already contain
-        // the reservation ID element,
-        // create it automatically.
-
         if (
             !confirmId &&
             reservation.id
@@ -977,6 +1160,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     "#confirmation"
                 );
 
+
             if (confirmation) {
 
                 confirmId =
@@ -984,21 +1168,30 @@ document.addEventListener("DOMContentLoaded", function () {
                         "div"
                     );
 
+
                 confirmId.id =
                     "confirm-id";
+
 
                 confirmId.style.marginTop =
                     "10px";
 
+
                 confirmId.style.fontWeight =
                     "bold";
+
 
                 confirmId.style.fontSize =
                     "15px";
 
-                confirmation.appendChild(
-                    confirmId
-                );
+
+                confirmation
+                    .querySelector(
+                        ".confirmation-box"
+                    )
+                    ?.appendChild(
+                        confirmId
+                    );
 
             }
 
@@ -1027,10 +1220,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 "#confirmation"
             );
 
+
         if (confirmation) {
 
-            confirmation.style.display =
-                "flex";
+            confirmation.classList.add(
+                "show"
+            );
 
         } else {
 
@@ -1054,23 +1249,14 @@ document.addEventListener("DOMContentLoaded", function () {
             "#close-confirmation"
         );
 
+
     if (closeButton) {
 
         closeButton.addEventListener(
             "click",
             function () {
 
-                const confirmation =
-                    document.querySelector(
-                        "#confirmation"
-                    );
-
-                if (confirmation) {
-
-                    confirmation.style.display =
-                        "none";
-
-                }
+                closeConfirmation();
 
             }
         );
@@ -1087,19 +1273,19 @@ document.addEventListener("DOMContentLoaded", function () {
             "#confirmation"
         );
 
+
     if (confirmation) {
 
         confirmation.addEventListener(
             "click",
-            function(event) {
+            function (event) {
 
                 if (
                     event.target ===
                     confirmation
                 ) {
 
-                    confirmation.style.display =
-                        "none";
+                    closeConfirmation();
 
                 }
 
@@ -1115,28 +1301,41 @@ document.addEventListener("DOMContentLoaded", function () {
 
     document.addEventListener(
         "keydown",
-        function(event) {
+        function (event) {
 
             if (
                 event.key === "Escape"
             ) {
 
-                const confirmation =
-                    document.querySelector(
-                        "#confirmation"
-                    );
-
-                if (confirmation) {
-
-                    confirmation.style.display =
-                        "none";
-
-                }
+                closeConfirmation();
 
             }
 
         }
     );
+
+
+    // ==================================================
+    // CLOSE CONFIRMATION FUNCTION
+    // ==================================================
+
+    function closeConfirmation() {
+
+        const confirmation =
+            document.querySelector(
+                "#confirmation"
+            );
+
+
+        if (confirmation) {
+
+            confirmation.classList.remove(
+                "show"
+            );
+
+        }
+
+    }
 
 
     // ==================================================
@@ -1148,8 +1347,10 @@ document.addEventListener("DOMContentLoaded", function () {
         const today =
             new Date();
 
+
         const year =
             today.getFullYear();
+
 
         const month =
             String(
@@ -1159,6 +1360,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 "0"
             );
 
+
         const day =
             String(
                 today.getDate()
@@ -1166,6 +1368,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 2,
                 "0"
             );
+
 
         return (
             `${year}-${month}-${day}`
@@ -1183,17 +1386,24 @@ document.addEventListener("DOMContentLoaded", function () {
     ) {
 
         if (!date) {
+
             return "";
+
         }
+
 
         const parts =
             date.split("-");
 
+
         if (
             parts.length !== 3
         ) {
+
             return date;
+
         }
+
 
         const formattedDate =
             new Date(
@@ -1205,6 +1415,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 Number(parts[2])
 
             );
+
 
         return formattedDate
             .toLocaleDateString(
@@ -1232,37 +1443,51 @@ document.addEventListener("DOMContentLoaded", function () {
     ) {
 
         if (!time) {
+
             return "";
+
         }
+
 
         const parts =
             time.split(":");
 
+
         if (
             parts.length < 2
         ) {
+
             return time;
+
         }
+
 
         let hours =
             Number(parts[0]);
 
+
         const minutes =
             parts[1];
+
 
         const period =
             hours >= 12
                 ? "PM"
                 : "AM";
 
+
         hours =
             hours % 12;
+
 
         if (
             hours === 0
         ) {
+
             hours = 12;
+
         }
+
 
         return (
             `${hours}:${minutes} ${period}`
@@ -1352,4 +1577,4 @@ document.addEventListener("DOMContentLoaded", function () {
 
     }
 
-});s
+});

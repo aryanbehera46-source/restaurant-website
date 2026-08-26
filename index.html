@@ -2,7 +2,6 @@
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
 
     <meta
@@ -16,989 +15,785 @@
         rel="stylesheet"
         href="style.css"
     >
-
 </head>
-
 
 <body>
 
+    <!-- ==================================================
+         NAVBAR
+    ================================================== -->
 
-<!-- ==================================================
-     NAVBAR
-================================================== -->
+    <header class="navbar">
 
-<header class="navbar">
+        <div class="logo">
+            Royal Table
+        </div>
 
-    <div class="logo">
-        Royal Table
-    </div>
-
-
-    <nav>
-
-        <a href="#home">
-            Home
-        </a>
-
-        <a href="#menu">
-            Menu
-        </a>
-
-        <a href="#about">
-            About
-        </a>
-
-        <a href="#contact">
-            Contact
-        </a>
-
-    </nav>
-
-
-    <a
-        href="#reservation"
-        class="reservation-button"
-    >
-        Reserve a Table
-    </a>
-
-</header>
-
-
-
-<!-- ==================================================
-     HERO
-================================================== -->
-
-<section
-    class="hero"
-    id="home"
->
-
-    <div class="hero-content">
-
-        <p class="eyebrow">
-            EST. 2026 • FINE DINING
-        </p>
-
-
-        <h1>
-            An Unforgettable Dining Experience
-        </h1>
-
-
-        <p class="hero-description">
-
-            Seasonal ingredients, refined flavors,
-            and an atmosphere designed for
-            unforgettable evenings.
-
-        </p>
-
+        <nav>
+            <a href="#home">Home</a>
+            <a href="#menu">Menu</a>
+            <a href="#about">About</a>
+            <a href="#reservation">Contact</a>
+        </nav>
 
         <a
             href="#reservation"
-            class="hero-button"
+            class="reservation-button"
         >
             Reserve a Table
         </a>
 
-    </div>
-
-</section>
-
-
-
-<!-- ==================================================
-     SIGNATURE DISHES
-     LOADED FROM DATABASE
-================================================== -->
-
-<section
-    class="dishes"
-    id="menu"
->
-
-    <div class="section-heading">
-
-        <p class="eyebrow">
-            FROM OUR KITCHEN
-        </p>
-
-
-        <h2>
-            Signature Dishes
-        </h2>
-
-
-        <p>
-            Carefully crafted dishes made with
-            seasonal ingredients and a touch
-            of culinary artistry.
-        </p>
-
-    </div>
-
-
-    <div
-        id="signatureLoading"
-        class="menu-loading"
-    >
-        Loading our signature dishes...
-    </div>
-
-
-    <div
-        id="signatureError"
-        class="menu-error"
-        style="display:none;"
-    >
-        Unable to load our menu.
-    </div>
-
-
-    <div
-        id="signatureDishGrid"
-        class="dish-grid"
-    ></div>
-
-</section>
-
-
-
-<!-- ==================================================
-     ABOUT
-================================================== -->
-
-<section
-    class="about"
-    id="about"
->
-
-    <div class="about-image">
-
-        <img
-            src="https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=1200&q=80"
-            alt="Chef preparing a dish"
-        >
-
-    </div>
-
-
-    <div class="about-content">
-
-        <p class="eyebrow">
-            OUR STORY
-        </p>
-
-
-        <h2>
-            A Table Made for Memorable Moments
-        </h2>
-
-
-        <p>
-
-            Royal Table brings together seasonal
-            ingredients, thoughtful cooking and
-            warm hospitality in an elegant setting
-            designed for unforgettable evenings.
-
-        </p>
-
-
-        <p>
-
-            From intimate dinners to celebrations
-            with friends and family, every detail
-            is carefully considered—from the
-            kitchen to the table.
-
-        </p>
-
-
-        <a
-            href="#contact"
-            class="about-button"
-        >
-            Discover Our Story
-        </a>
-
-    </div>
-
-</section>
-
-
-
-<!-- ==================================================
-     FULL MENU
-     LOADED FROM DATABASE
-================================================== -->
-
-<section
-    class="full-menu"
-    id="full-menu"
->
-
-    <div class="section-heading">
-
-        <p class="eyebrow">
-            THE MENU
-        </p>
-
-
-        <h2>
-            Curated for Every Occasion
-        </h2>
-
-
-        <p>
-            A selection of our most loved dishes,
-            prepared fresh by our kitchen every day.
-        </p>
-
-    </div>
-
-
-    <!-- CATEGORY FILTER -->
-
-    <div
-        id="menuCategories"
-        class="menu-categories"
-    >
-
-        <button
-            type="button"
-            class="menu-category active"
-            data-category="all"
-        >
-            All
-        </button>
-
-    </div>
-
-
-    <!-- MENU LOADING -->
-
-    <div
-        id="menuLoading"
-        class="menu-loading"
-    >
-        Loading menu...
-    </div>
-
-
-    <!-- MENU ERROR -->
-
-    <div
-        id="menuError"
-        class="menu-error"
-        style="display:none;"
-    >
-        Unable to load the menu.
-    </div>
-
-
-    <!-- EMPTY MENU -->
-
-    <div
-        id="menuEmpty"
-        class="menu-empty"
-        style="display:none;"
-    >
-        Our menu is currently being updated.
-    </div>
-
-
-    <!-- DYNAMIC MENU -->
-
-    <div
-        id="menuList"
-        class="menu-list"
-    ></div>
-
-</section>
-
-
-
-<!-- ==================================================
-     RESERVATION
-================================================== -->
-
-<section
-    class="reservation"
-    id="reservation"
->
-
-    <div class="reservation-heading">
-
-        <p class="eyebrow">
-            RESERVATIONS
-        </p>
-
-
-        <h2>
-            Reserve Your Table
-        </h2>
-
-
-        <p>
-
-            Join us for an evening of exceptional food,
-            thoughtful service and unforgettable moments.
-
-        </p>
-
-    </div>
-
-
-    <form
-        class="reservation-form"
-        id="reservationForm"
-    >
-
-
-        <!-- NAME + EMAIL -->
-
-        <div class="form-row">
-
-            <div class="form-group">
-
-                <label for="name">
-                    Full Name
-                </label>
-
-
-                <input
-                    type="text"
-                    id="name"
-                    placeholder="Your name"
-                    required
-                >
-
-            </div>
-
-
-            <div class="form-group">
-
-                <label for="email">
-                    Email
-                </label>
-
-
-                <input
-                    type="email"
-                    id="email"
-                    placeholder="you@example.com"
-                    required
-                >
-
-            </div>
-
-        </div>
-
-
-
-        <!-- DATE + TIME -->
-
-        <div class="form-row">
-
-            <div class="form-group">
-
-                <label for="date">
-                    Date
-                </label>
-
-
-                <input
-                    type="date"
-                    id="date"
-                    required
-                >
-
-            </div>
-
-
-            <div class="form-group">
-
-                <label for="time">
-                    Time
-                </label>
-
-
-                <input
-                    type="time"
-                    id="time"
-                    required
-                >
-
-            </div>
-
-        </div>
-
-
-
-        <!-- GUESTS + PHONE -->
-
-        <div class="form-row">
-
-            <div class="form-group">
-
-                <label for="guests">
-                    Guests
-                </label>
-
-
-                <select
-                    id="guests"
-                    required
-                >
-
-                    <option value="">
-                        Select guests
-                    </option>
-
-                    <option value="1">
-                        1 Guest
-                    </option>
-
-                    <option value="2">
-                        2 Guests
-                    </option>
-
-                    <option value="3">
-                        3 Guests
-                    </option>
-
-                    <option value="4">
-                        4 Guests
-                    </option>
-
-                    <option value="5">
-                        5 Guests
-                    </option>
-
-                    <option value="6">
-                        6 Guests
-                    </option>
-
-                    <option value="7">
-                        7 Guests
-                    </option>
-
-                    <option value="8">
-                        8 Guests
-                    </option>
-
-                    <option value="9">
-                        9 Guests
-                    </option>
-
-                    <option value="10">
-                        10 Guests
-                    </option>
-
-                    <option value="11">
-                        11 Guests
-                    </option>
-
-                    <option value="12">
-                        12 Guests
-                    </option>
-
-                    <option value="13">
-                        13 Guests
-                    </option>
-
-                    <option value="14">
-                        14 Guests
-                    </option>
-
-                    <option value="15">
-                        15 Guests
-                    </option>
-
-                    <option value="16">
-                        16 Guests
-                    </option>
-
-                    <option value="17">
-                        17 Guests
-                    </option>
-
-                    <option value="18">
-                        18 Guests
-                    </option>
-
-                    <option value="19">
-                        19 Guests
-                    </option>
-
-                    <option value="20">
-                        20 Guests
-                    </option>
-
-                </select>
-
-            </div>
-
-
-            <div class="form-group">
-
-                <label for="phone">
-                    Phone
-                </label>
-
-
-                <input
-                    type="tel"
-                    id="phone"
-                    placeholder="XXXXXXXXXX"
-                    required
-                >
-
-            </div>
-
-        </div>
-
-
-
-        <!-- SPECIAL REQUEST -->
-
-        <div class="form-group">
-
-            <label for="message">
-                Special Request
-            </label>
-
-
-            <textarea
-                id="message"
-                rows="5"
-                placeholder="Birthday, anniversary, dietary requirements..."
-            ></textarea>
-
-        </div>
-
-
-
-        <button
-            type="submit"
-            class="submit-button"
-        >
-            Request Reservation
-        </button>
-
-
-    </form>
-
+    </header>
 
 
     <!-- ==================================================
-         CONFIRMATION
+         HERO
     ================================================== -->
 
-    <div
-        class="confirmation"
-        id="confirmation"
+    <section
+        class="hero"
+        id="home"
     >
 
-        <div class="confirmation-box">
+        <div class="hero-content">
 
-            <span class="confirmation-icon">
-                ✓
-            </span>
-
-
-            <h3>
-                Reservation Received
-            </h3>
-
-
-            <p>
-
-                Thank you,
-                <strong id="confirm-name"></strong>.
-
+            <p class="eyebrow">
+                EST. 2026 • FINE DINING
             </p>
 
+            <h1>
+                An Unforgettable Dining Experience
+            </h1>
 
-            <p>
-
-                Your table request for
-                <strong id="confirm-guests"></strong>
-                guests has been received.
-
+            <p class="hero-description">
+                Seasonal ingredients, refined flavors,
+                and an atmosphere designed for
+                unforgettable evenings.
             </p>
 
-
-            <p>
-
-                <strong id="confirm-date"></strong>
-
-                at
-
-                <strong id="confirm-time"></strong>
-
-            </p>
-
-
-            <button
-                type="button"
-                id="close-confirmation"
+            <a
+                href="#reservation"
+                class="hero-button"
             >
-                Close
-            </button>
+                Reserve a Table
+            </a>
 
         </div>
 
-    </div>
-
-</section>
+    </section>
 
 
+    <!-- ==================================================
+         SIGNATURE DISHES
+         LOADED FROM DATABASE
+    ================================================== -->
 
-<!-- ==================================================
-     JAVASCRIPT
-================================================== -->
+    <section
+        class="dishes"
+        id="menu"
+    >
 
-<script>
+        <div class="section-heading">
 
-
-// ==================================================
-// API
-// ==================================================
-
-const API_URL =
-    "http://127.0.0.1:5001";
-
-
-// ==================================================
-// GLOBAL MENU DATA
-// ==================================================
-
-let allMenuItems = [];
-
-let selectedCategory = "all";
-
-
-// ==================================================
-// RESTAURANT CAPACITY
-// ==================================================
-
-let currentCapacity = null;
-
-
-// ==================================================
-// LOAD MENU
-// ==================================================
-
-async function loadMenu() {
-
-    const signatureLoading =
-        document.getElementById(
-            "signatureLoading"
-        );
-
-    const signatureError =
-        document.getElementById(
-            "signatureError"
-        );
-
-    const menuLoading =
-        document.getElementById(
-            "menuLoading"
-        );
-
-    const menuError =
-        document.getElementById(
-            "menuError"
-        );
-
-
-    try {
-
-        const response =
-            await fetch(
-                `${API_URL}/menu`
-            );
-
-
-        const data =
-            await response.json();
-
-
-        if (
-            !response.ok ||
-            !data.success
-        ) {
-
-            throw new Error(
-                data.message ||
-                "Unable to load menu."
-            );
-
-        }
-
-
-        allMenuItems =
-            data.menu || [];
-
-
-        signatureLoading.style.display =
-            "none";
-
-        menuLoading.style.display =
-            "none";
-
-
-        renderSignatureDishes();
-
-        renderMenuCategories();
-
-        renderFullMenu();
-
-
-    } catch (error) {
-
-        console.error(
-            "Menu loading error:",
-            error
-        );
-
-
-        signatureLoading.style.display =
-            "none";
-
-        menuLoading.style.display =
-            "none";
-
-
-        signatureError.style.display =
-            "block";
-
-        menuError.style.display =
-            "block";
-
-    }
-
-}
-
-
-// ==================================================
-// RENDER SIGNATURE DISHES
-// ==================================================
-
-function renderSignatureDishes() {
-
-    const grid =
-        document.getElementById(
-            "signatureDishGrid"
-        );
-
-
-    grid.innerHTML = "";
-
-
-    const signatureItems =
-        allMenuItems
-            .filter(
-                item =>
-                    Number(item.available) === 1
-            )
-            .slice(
-                0,
-                3
-            );
-
-
-    if (
-        signatureItems.length === 0
-    ) {
-
-        grid.innerHTML = `
-            <p class="menu-empty">
-                Our signature dishes are
-                currently being updated.
+            <p class="eyebrow">
+                FROM OUR KITCHEN
             </p>
-        `;
 
-        return;
+            <h2>
+                Signature Dishes
+            </h2>
 
-    }
+            <p>
+                Carefully crafted dishes made with
+                seasonal ingredients and a touch
+                of culinary artistry.
+            </p>
+
+        </div>
+
+        <div
+            id="signatureLoading"
+            class="menu-loading"
+        >
+            Loading our signature dishes...
+        </div>
+
+        <div
+            id="signatureError"
+            class="menu-error"
+            style="display: none;"
+        >
+            Unable to load our menu.
+        </div>
+
+        <div
+            id="signatureDishGrid"
+            class="dish-grid"
+        ></div>
+
+    </section>
 
 
-    signatureItems.forEach(
-        item => {
+    <!-- ==================================================
+         ABOUT
+    ================================================== -->
 
-            const article =
-                document.createElement(
-                    "article"
-                );
+    <section
+        class="about"
+        id="about"
+    >
+
+        <div class="about-image">
+
+            <img
+                src="https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=1200&q=80"
+                alt="Chef preparing a dish"
+                loading="lazy"
+            >
+
+        </div>
+
+        <div class="about-content">
+
+            <p class="eyebrow">
+                OUR STORY
+            </p>
+
+            <h2>
+                A Table Made for Memorable Moments
+            </h2>
+
+            <p>
+                Royal Table brings together seasonal
+                ingredients, thoughtful cooking and
+                warm hospitality in an elegant setting
+                designed for unforgettable evenings.
+            </p>
+
+            <p>
+                From intimate dinners to celebrations
+                with friends and family, every detail
+                is carefully considered—from the
+                kitchen to the table.
+            </p>
+
+            <a
+                href="#reservation"
+                class="about-button"
+            >
+                Discover Our Story
+            </a>
+
+        </div>
+
+    </section>
 
 
-            article.className =
-                "dish-card";
+    <!-- ==================================================
+         FULL MENU
+         LOADED FROM DATABASE
+    ================================================== -->
+
+    <section
+        class="full-menu"
+        id="full-menu"
+    >
+
+        <div class="section-heading">
+
+            <p class="eyebrow">
+                THE MENU
+            </p>
+
+            <h2>
+                Curated for Every Occasion
+            </h2>
+
+            <p>
+                A selection of our most loved dishes,
+                prepared fresh by our kitchen every day.
+            </p>
+
+        </div>
 
 
-            const image =
-                item.image ||
-                "https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=1000&q=80";
+        <!-- CATEGORY FILTER -->
+
+        <div
+            id="menuCategories"
+            class="menu-categories"
+        ></div>
 
 
-            article.innerHTML = `
+        <!-- MENU LOADING -->
 
-                <img
-                    src="${escapeHtml(image)}"
-                    alt="${escapeHtml(item.name)}"
-                    loading="lazy"
-                >
+        <div
+            id="menuLoading"
+            class="menu-loading"
+        >
+            Loading menu...
+        </div>
 
-                <div class="dish-info">
 
-                    <h3>
-                        ${escapeHtml(item.name)}
-                    </h3>
+        <!-- MENU ERROR -->
 
-                    <p>
-                        ${
-                            item.description
-                                ? escapeHtml(
-                                    item.description
-                                )
-                                : "Prepared fresh by our kitchen."
-                        }
-                    </p>
+        <div
+            id="menuError"
+            class="menu-error"
+            style="display: none;"
+        >
+            Unable to load the menu.
+        </div>
 
-                    <span>
-                        ${formatCurrency(item.price)}
-                    </span>
+
+        <!-- EMPTY MENU -->
+
+        <div
+            id="menuEmpty"
+            class="menu-empty"
+            style="display: none;"
+        >
+            Our menu is currently being updated.
+        </div>
+
+
+        <!-- DYNAMIC MENU -->
+
+        <div
+            id="menuList"
+            class="menu-list"
+        ></div>
+
+    </section>
+
+
+    <!-- ==================================================
+         RESERVATION
+    ================================================== -->
+
+    <section
+        class="reservation"
+        id="reservation"
+    >
+
+        <div class="reservation-heading">
+
+            <p class="eyebrow">
+                RESERVATIONS
+            </p>
+
+            <h2>
+                Reserve Your Table
+            </h2>
+
+            <p>
+                Join us for an evening of exceptional food,
+                thoughtful service and unforgettable moments.
+            </p>
+
+        </div>
+
+
+        <form
+            class="reservation-form"
+            id="reservationForm"
+        >
+
+            <!-- NAME + EMAIL -->
+
+            <div class="form-row">
+
+                <div class="form-group">
+
+                    <label for="name">
+                        Full Name
+                    </label>
+
+                    <input
+                        type="text"
+                        id="name"
+                        placeholder="Your name"
+                        autocomplete="name"
+                        required
+                    >
 
                 </div>
 
-            `;
+
+                <div class="form-group">
+
+                    <label for="email">
+                        Email
+                    </label>
+
+                    <input
+                        type="email"
+                        id="email"
+                        placeholder="you@example.com"
+                        autocomplete="email"
+                        required
+                    >
+
+                </div>
+
+            </div>
 
 
-            grid.appendChild(
-                article
+            <!-- DATE + TIME -->
+
+            <div class="form-row">
+
+                <div class="form-group">
+
+                    <label for="date">
+                        Date
+                    </label>
+
+                    <input
+                        type="date"
+                        id="date"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="time">
+                        Time
+                    </label>
+
+                    <input
+                        type="time"
+                        id="time"
+                        required
+                    >
+
+                </div>
+
+            </div>
+
+
+            <!-- GUESTS + PHONE -->
+
+            <div class="form-row">
+
+                <div class="form-group">
+
+                    <label for="guests">
+                        Guests
+                    </label>
+
+                    <select
+                        id="guests"
+                        required
+                    >
+
+                        <option value="">
+                            Select guests
+                        </option>
+
+                        <option value="1">1 Guest</option>
+                        <option value="2">2 Guests</option>
+                        <option value="3">3 Guests</option>
+                        <option value="4">4 Guests</option>
+                        <option value="5">5 Guests</option>
+                        <option value="6">6 Guests</option>
+                        <option value="7">7 Guests</option>
+                        <option value="8">8 Guests</option>
+                        <option value="9">9 Guests</option>
+                        <option value="10">10 Guests</option>
+                        <option value="11">11 Guests</option>
+                        <option value="12">12 Guests</option>
+                        <option value="13">13 Guests</option>
+                        <option value="14">14 Guests</option>
+                        <option value="15">15 Guests</option>
+                        <option value="16">16 Guests</option>
+                        <option value="17">17 Guests</option>
+                        <option value="18">18 Guests</option>
+                        <option value="19">19 Guests</option>
+                        <option value="20">20 Guests</option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="phone">
+                        Phone
+                    </label>
+
+                    <input
+                        type="tel"
+                        id="phone"
+                        placeholder="XXXXXXXXXX"
+                        autocomplete="tel"
+                        required
+                    >
+
+                </div>
+
+            </div>
+
+
+            <!-- SPECIAL REQUEST -->
+
+            <div class="form-group">
+
+                <label for="message">
+                    Special Request
+                </label>
+
+                <textarea
+                    id="message"
+                    rows="5"
+                    placeholder="Birthday, anniversary, dietary requirements..."
+                ></textarea>
+
+            </div>
+
+
+            <button
+                type="submit"
+                class="submit-button"
+            >
+                Request Reservation
+            </button>
+
+        </form>
+
+
+        <!-- ==================================================
+             CONFIRMATION
+        ================================================== -->
+
+        <div
+            class="confirmation"
+            id="confirmation"
+        >
+
+            <div class="confirmation-box">
+
+                <span class="confirmation-icon">
+                    ✓
+                </span>
+
+                <h3>
+                    Reservation Received
+                </h3>
+
+                <p>
+                    Thank you,
+                    <strong id="confirm-name"></strong>.
+                </p>
+
+                <p>
+                    Your table request for
+                    <strong id="confirm-guests"></strong>
+                    guests has been received.
+                </p>
+
+                <p>
+                    <strong id="confirm-date"></strong>
+                    at
+                    <strong id="confirm-time"></strong>
+                </p>
+
+                <button
+                    type="button"
+                    id="close-confirmation"
+                >
+                    Close
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ==================================================
+         JAVASCRIPT
+    ================================================== -->
+
+    <script>
+
+        // ==================================================
+        // API
+        // ==================================================
+
+        const API_URL =
+            "http://127.0.0.1:5001";
+
+
+        // ==================================================
+        // GLOBAL MENU DATA
+        // ==================================================
+
+        let allMenuItems = [];
+
+        let selectedCategory = "all";
+
+
+        // ==================================================
+        // RESTAURANT CAPACITY
+        // ==================================================
+
+        let currentCapacity = null;
+
+
+        // ==================================================
+        // LOAD MENU
+        // ==================================================
+
+        async function loadMenu() {
+
+            const signatureLoading =
+                document.getElementById(
+                    "signatureLoading"
+                );
+
+            const signatureError =
+                document.getElementById(
+                    "signatureError"
+                );
+
+            const menuLoading =
+                document.getElementById(
+                    "menuLoading"
+                );
+
+            const menuError =
+                document.getElementById(
+                    "menuError"
+                );
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        `${API_URL}/menu`
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (
+                    !response.ok ||
+                    !data.success
+                ) {
+
+                    throw new Error(
+                        data.message ||
+                        "Unable to load menu."
+                    );
+
+                }
+
+
+                allMenuItems =
+                    Array.isArray(data.menu)
+                        ? data.menu
+                        : [];
+
+
+                signatureLoading.style.display =
+                    "none";
+
+                menuLoading.style.display =
+                    "none";
+
+
+                renderSignatureDishes();
+
+                renderMenuCategories();
+
+                renderFullMenu();
+
+
+            } catch (error) {
+
+                console.error(
+                    "Menu loading error:",
+                    error
+                );
+
+
+                signatureLoading.style.display =
+                    "none";
+
+                menuLoading.style.display =
+                    "none";
+
+
+                signatureError.style.display =
+                    "block";
+
+                menuError.style.display =
+                    "block";
+
+            }
+
+        }
+
+
+        // ==================================================
+        // RENDER SIGNATURE DISHES
+        // ==================================================
+
+        function renderSignatureDishes() {
+
+            const grid =
+                document.getElementById(
+                    "signatureDishGrid"
+                );
+
+
+            grid.innerHTML = "";
+
+
+            const signatureItems =
+                allMenuItems
+                    .filter(
+                        item =>
+                            Number(item.available) === 1
+                    )
+                    .slice(
+                        0,
+                        3
+                    );
+
+
+            if (
+                signatureItems.length === 0
+            ) {
+
+                grid.innerHTML = `
+                    <p class="menu-empty">
+                        Our signature dishes are
+                        currently being updated.
+                    </p>
+                `;
+
+                return;
+
+            }
+
+
+            signatureItems.forEach(
+                item => {
+
+                    const article =
+                        document.createElement(
+                            "article"
+                        );
+
+
+                    article.className =
+                        "dish-card";
+
+
+                    const image =
+                        item.image ||
+                        "https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=1000&q=80";
+
+
+                    article.innerHTML = `
+
+                        <img
+                            src="${escapeHtml(image)}"
+                            alt="${escapeHtml(item.name)}"
+                            loading="lazy"
+                        >
+
+                        <div class="dish-info">
+
+                            <h3>
+                                ${escapeHtml(item.name)}
+                            </h3>
+
+                            <p>
+                                ${
+                                    item.description
+                                        ? escapeHtml(
+                                            item.description
+                                        )
+                                        : "Prepared fresh by our kitchen."
+                                }
+                            </p>
+
+                            <span>
+                                ${formatCurrency(item.price)}
+                            </span>
+
+                        </div>
+
+                    `;
+
+
+                    grid.appendChild(
+                        article
+                    );
+
+                }
             );
 
         }
-    );
-
-}
 
 
-// ==================================================
-// RENDER CATEGORIES
-// ==================================================
+        // ==================================================
+        // RENDER CATEGORIES
+        // ==================================================
 
-function renderMenuCategories() {
+        function renderMenuCategories() {
 
-    const container =
-        document.getElementById(
-            "menuCategories"
-        );
-
-
-    container.innerHTML = "";
+            const container =
+                document.getElementById(
+                    "menuCategories"
+                );
 
 
-    const allButton =
-        document.createElement(
-            "button"
-        );
+            container.innerHTML = "";
 
 
-    allButton.type =
-        "button";
-
-
-    allButton.className =
-        "menu-category active";
-
-
-    allButton.dataset.category =
-        "all";
-
-
-    allButton.textContent =
-        "All";
-
-
-    allButton.addEventListener(
-        "click",
-        () => {
-
-            selectedCategory =
-                "all";
-
-
-            updateCategoryButtons();
-
-
-            renderFullMenu();
-
-        }
-    );
-
-
-    container.appendChild(
-        allButton
-    );
-
-
-    const categories = [
-        ...new Set(
-            allMenuItems
-                .filter(
-                    item =>
-                        Number(item.available) === 1
-                )
-                .map(
-                    item =>
-                        item.category
-                )
-                .filter(Boolean)
-        )
-    ];
-
-
-    categories.forEach(
-        category => {
-
-            const button =
+            const allButton =
                 document.createElement(
                     "button"
                 );
 
 
-            button.type =
+            allButton.type =
                 "button";
 
 
-            button.className =
-                "menu-category";
+            allButton.className =
+                "menu-category active";
 
 
-            button.dataset.category =
-                category;
+            allButton.dataset.category =
+                "all";
 
 
-            button.textContent =
-                category;
+            allButton.textContent =
+                "All";
 
 
-            button.addEventListener(
+            allButton.addEventListener(
                 "click",
                 () => {
 
                     selectedCategory =
-                        category;
+                        "all";
 
 
                     updateCategoryButtons();
-
 
                     renderFullMenu();
 
@@ -1007,910 +802,1014 @@ function renderMenuCategories() {
 
 
             container.appendChild(
-                button
-            );
-
-        }
-    );
-
-}
-
-
-// ==================================================
-// UPDATE CATEGORY BUTTONS
-// ==================================================
-
-function updateCategoryButtons() {
-
-    document
-        .querySelectorAll(
-            ".menu-category"
-        )
-        .forEach(
-            button => {
-
-                button.classList.toggle(
-                    "active",
-                    button.dataset.category ===
-                    selectedCategory
-                );
-
-            }
-        );
-
-}
-
-
-// ==================================================
-// RENDER FULL MENU
-// ==================================================
-
-function renderFullMenu() {
-
-    const list =
-        document.getElementById(
-            "menuList"
-        );
-
-
-    const empty =
-        document.getElementById(
-            "menuEmpty"
-        );
-
-
-    list.innerHTML = "";
-
-
-    let items =
-        allMenuItems.filter(
-            item =>
-                Number(item.available) === 1
-        );
-
-
-    if (
-        selectedCategory !== "all"
-    ) {
-
-        items =
-            items.filter(
-                item =>
-                    item.category ===
-                    selectedCategory
-            );
-
-    }
-
-
-    if (
-        items.length === 0
-    ) {
-
-        empty.style.display =
-            "block";
-
-        return;
-
-    }
-
-
-    empty.style.display =
-        "none";
-
-
-    items.forEach(
-        item => {
-
-            const menuItem =
-                document.createElement(
-                    "div"
-                );
-
-
-            menuItem.className =
-                "menu-item";
-
-
-            menuItem.innerHTML = `
-
-                <div>
-
-                    <h3>
-                        ${escapeHtml(item.name)}
-                    </h3>
-
-
-                    ${
-                        item.description
-                            ? `
-                                <p>
-                                    ${escapeHtml(
-                                        item.description
-                                    )}
-                                </p>
-                              `
-                            : ""
-                    }
-
-
-                    ${
-                        item.category
-                            ? `
-                                <small>
-                                    ${escapeHtml(
-                                        item.category
-                                    )}
-                                </small>
-                              `
-                            : ""
-                    }
-
-                </div>
-
-
-                <span>
-                    ${formatCurrency(item.price)}
-                </span>
-
-            `;
-
-
-            list.appendChild(
-                menuItem
-            );
-
-        }
-    );
-
-}
-
-
-// ==================================================
-// RESERVATION ELEMENTS
-// ==================================================
-
-const reservationForm =
-    document.getElementById(
-        "reservationForm"
-    );
-
-
-const dateInput =
-    document.getElementById(
-        "date"
-    );
-
-
-const timeInput =
-    document.getElementById(
-        "time"
-    );
-
-
-const guestsInput =
-    document.getElementById(
-        "guests"
-    );
-
-
-// ==================================================
-// CAPACITY MESSAGE
-// ==================================================
-
-function createCapacityMessage() {
-
-    let existing =
-        document.getElementById(
-            "capacityMessage"
-        );
-
-
-    if (
-        existing
-    ) {
-
-        return existing;
-
-    }
-
-
-    existing =
-        document.createElement(
-            "div"
-        );
-
-
-    existing.id =
-        "capacityMessage";
-
-
-    existing.style.marginTop =
-        "10px";
-
-
-    existing.style.fontFamily =
-        "Arial, sans-serif";
-
-
-    existing.style.fontSize =
-        "14px";
-
-
-    existing.style.lineHeight =
-        "1.5";
-
-
-    timeInput
-        .parentElement
-        .appendChild(
-            existing
-        );
-
-
-    return existing;
-
-}
-
-
-// ==================================================
-// CHECK RESERVATION CAPACITY
-// ==================================================
-
-async function checkReservationCapacity() {
-
-    const date =
-        dateInput.value;
-
-
-    const time =
-        timeInput.value;
-
-
-    const guests =
-        Number(
-            guestsInput.value
-        );
-
-
-    const message =
-        createCapacityMessage();
-
-
-    currentCapacity =
-        null;
-
-
-    message.textContent =
-        "";
-
-
-    message.style.color =
-        "#777";
-
-
-    if (
-        !date ||
-        !time
-    ) {
-
-        return;
-
-    }
-
-
-    message.textContent =
-        "Checking availability...";
-
-
-    try {
-
-        const response =
-            await fetch(
-                `${API_URL}/reservations/capacity?date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}`
+                allButton
             );
 
 
-        const data =
-            await response.json();
-
-
-        if (
-            !response.ok ||
-            !data.success
-        ) {
-
-            throw new Error(
-                data.message ||
-                "Unable to check availability."
-            );
-
-        }
-
-
-        currentCapacity =
-            data.capacity;
-
-
-        const remaining =
-            Number(
-                data.capacity.remaining
-            );
-
-
-        if (
-            remaining <= 0
-        ) {
-
-            message.textContent =
-                "This time slot is fully booked. Please choose another time.";
-
-            message.style.color =
-                "#b42318";
-
-            return;
-
-        }
-
-
-        if (
-            guests > remaining
-        ) {
-
-            message.textContent =
-                `Only ${remaining} guest space${remaining === 1 ? "" : "s"} remaining for this time.`;
-
-            message.style.color =
-                "#b42318";
-
-            return;
-
-        }
-
-
-        message.textContent =
-            `${remaining} guest space${remaining === 1 ? "" : "s"} remaining for this time slot.`;
-
-        message.style.color =
-            "#777";
-
-
-    } catch (error) {
-
-        console.error(
-            "Capacity check error:",
-            error
-        );
-
-
-        currentCapacity =
-            null;
-
-
-        message.textContent =
-            "Unable to check availability right now. You can still submit your request.";
-
-        message.style.color =
-            "#777";
-
-    }
-
-}
-
-
-// ==================================================
-// CAPACITY EVENTS
-// ==================================================
-
-dateInput.addEventListener(
-    "change",
-    checkReservationCapacity
-);
-
-
-timeInput.addEventListener(
-    "change",
-    checkReservationCapacity
-);
-
-
-guestsInput.addEventListener(
-    "change",
-    checkReservationCapacity
-);
-
-
-// ==================================================
-// RESERVATION FORM SUBMIT
-// ==================================================
-
-reservationForm.addEventListener(
-    "submit",
-    async function(event) {
-
-        event.preventDefault();
-
-
-        const submitButton =
-            reservationForm.querySelector(
-                ".submit-button"
-            );
-
-
-        const name =
-            document
-                .getElementById(
-                    "name"
+            const categories = [
+                ...new Set(
+                    allMenuItems
+                        .filter(
+                            item =>
+                                Number(item.available) === 1
+                        )
+                        .map(
+                            item =>
+                                item.category
+                        )
+                        .filter(Boolean)
                 )
-                .value
-                .trim();
+            ];
 
 
-        const email =
-            document
-                .getElementById(
-                    "email"
-                )
-                .value
-                .trim();
+            categories.forEach(
+                category => {
+
+                    const button =
+                        document.createElement(
+                            "button"
+                        );
 
 
-        const date =
-            dateInput.value;
+                    button.type =
+                        "button";
 
 
-        const time =
-            timeInput.value;
+                    button.className =
+                        "menu-category";
 
 
-        const guests =
-            guestsInput.value;
+                    button.dataset.category =
+                        category;
 
 
-        const phone =
-            document
-                .getElementById(
-                    "phone"
-                )
-                .value
-                .trim();
+                    button.textContent =
+                        category;
 
 
-        const specialRequest =
-            document
-                .getElementById(
-                    "message"
-                )
-                .value
-                .trim();
+                    button.addEventListener(
+                        "click",
+                        () => {
+
+                            selectedCategory =
+                                category;
 
 
-        // --------------------------------------------------
-        // FINAL CAPACITY CHECK
-        // --------------------------------------------------
+                            updateCategoryButtons();
 
-        try {
+                            renderFullMenu();
 
-            const capacityResponse =
-                await fetch(
-                    `${API_URL}/reservations/capacity?date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}`
-                );
-
-
-            const capacityData =
-                await capacityResponse.json();
-
-
-            if (
-                capacityResponse.ok &&
-                capacityData.success
-            ) {
-
-                const remaining =
-                    Number(
-                        capacityData
-                            .capacity
-                            .remaining
+                        }
                     );
 
 
-                if (
-                    Number(guests) >
-                    remaining
-                ) {
-
-                    alert(
-                        remaining > 0
-                            ? `Only ${remaining} guest space${remaining === 1 ? "" : "s"} remaining for this time slot. Please choose another time or reduce the number of guests.`
-                            : "This time slot is fully booked. Please choose another time."
+                    container.appendChild(
+                        button
                     );
-
-
-                    await checkReservationCapacity();
-
-
-                    return;
 
                 }
-
-            }
-
-        } catch (error) {
-
-            console.warn(
-                "Pre-submit capacity check failed:",
-                error
             );
 
         }
 
 
-        submitButton.disabled =
-            true;
+        // ==================================================
+        // UPDATE CATEGORY BUTTONS
+        // ==================================================
 
+        function updateCategoryButtons() {
 
-        submitButton.textContent =
-            "Sending...";
+            document
+                .querySelectorAll(
+                    ".menu-category"
+                )
+                .forEach(
+                    button => {
 
-
-        try {
-
-            const response =
-                await fetch(
-                    `${API_URL}/reservations`,
-                    {
-                        method:
-                            "POST",
-
-                        headers: {
-                            "Content-Type":
-                                "application/json"
-                        },
-
-                        body:
-                            JSON.stringify({
-
-                                name,
-
-                                email,
-
-                                date,
-
-                                time,
-
-                                guests,
-
-                                phone,
-
-                                specialRequest
-
-                            })
+                        button.classList.toggle(
+                            "active",
+                            button.dataset.category ===
+                            selectedCategory
+                        );
 
                     }
                 );
 
+        }
 
-            const data =
-                await response.json();
+
+        // ==================================================
+        // RENDER FULL MENU
+        // ==================================================
+
+        function renderFullMenu() {
+
+            const list =
+                document.getElementById(
+                    "menuList"
+                );
+
+
+            const empty =
+                document.getElementById(
+                    "menuEmpty"
+                );
+
+
+            list.innerHTML = "";
+
+
+            let items =
+                allMenuItems.filter(
+                    item =>
+                        Number(item.available) === 1
+                );
 
 
             if (
-                !response.ok ||
-                !data.success
+                selectedCategory !== "all"
             ) {
 
-                throw new Error(
-                    data.message ||
-                    "Unable to submit reservation."
-                );
+                items =
+                    items.filter(
+                        item =>
+                            item.category ===
+                            selectedCategory
+                    );
 
             }
 
 
-            document
-                .getElementById(
-                    "confirm-name"
-                )
-                .textContent =
-                    name;
+            if (
+                items.length === 0
+            ) {
+
+                empty.style.display =
+                    "block";
+
+                return;
+
+            }
 
 
-            document
-                .getElementById(
-                    "confirm-guests"
-                )
-                .textContent =
-                    guests;
+            empty.style.display =
+                "none";
 
 
-            document
-                .getElementById(
-                    "confirm-date"
-                )
-                .textContent =
-                    formatDisplayDate(
-                        date
+            items.forEach(
+                item => {
+
+                    const menuItem =
+                        document.createElement(
+                            "div"
+                        );
+
+
+                    menuItem.className =
+                        "menu-item";
+
+
+                    menuItem.innerHTML = `
+
+                        <div>
+
+                            <h3>
+                                ${escapeHtml(item.name)}
+                            </h3>
+
+                            ${
+                                item.description
+                                    ? `
+                                        <p>
+                                            ${escapeHtml(
+                                                item.description
+                                            )}
+                                        </p>
+                                    `
+                                    : ""
+                            }
+
+                            ${
+                                item.category
+                                    ? `
+                                        <small>
+                                            ${escapeHtml(
+                                                item.category
+                                            )}
+                                        </small>
+                                    `
+                                    : ""
+                            }
+
+                        </div>
+
+                        <span>
+                            ${formatCurrency(item.price)}
+                        </span>
+
+                    `;
+
+
+                    list.appendChild(
+                        menuItem
                     );
 
+                }
+            );
 
-            document
-                .getElementById(
-                    "confirm-time"
-                )
-                .textContent =
-                    formatDisplayTime(
-                        time
-                    );
+        }
 
 
-            document
-                .getElementById(
-                    "confirmation"
-                )
-                .classList.add(
-                    "show"
-                );
+        // ==================================================
+        // RESERVATION ELEMENTS
+        // ==================================================
+
+        const reservationForm =
+            document.getElementById(
+                "reservationForm"
+            );
 
 
-            reservationForm.reset();
+        const dateInput =
+            document.getElementById(
+                "date"
+            );
 
 
-            currentCapacity =
-                null;
+        const timeInput =
+            document.getElementById(
+                "time"
+            );
 
 
-            const capacityMessage =
+        const guestsInput =
+            document.getElementById(
+                "guests"
+            );
+
+
+        // ==================================================
+        // CAPACITY MESSAGE
+        // ==================================================
+
+        function createCapacityMessage() {
+
+            let existing =
                 document.getElementById(
                     "capacityMessage"
                 );
 
 
             if (
-                capacityMessage
+                existing
             ) {
 
-                capacityMessage.textContent =
-                    "";
+                return existing;
 
             }
 
 
-        } catch (error) {
-
-            console.error(
-                "Reservation error:",
-                error
-            );
+            existing =
+                document.createElement(
+                    "div"
+                );
 
 
-            alert(
-                error.message ||
-                "Unable to submit reservation."
-            );
+            existing.id =
+                "capacityMessage";
 
 
-            await checkReservationCapacity();
+            existing.style.marginTop =
+                "10px";
 
 
-        } finally {
-
-            submitButton.disabled =
-                false;
+            existing.style.fontFamily =
+                "Arial, sans-serif";
 
 
-            submitButton.textContent =
-                "Request Reservation";
+            existing.style.fontSize =
+                "14px";
+
+
+            existing.style.lineHeight =
+                "1.5";
+
+
+            timeInput
+                .parentElement
+                .appendChild(
+                    existing
+                );
+
+
+            return existing;
 
         }
 
-    }
-);
+
+        // ==================================================
+        // CHECK RESERVATION CAPACITY
+        // ==================================================
+
+        async function checkReservationCapacity() {
+
+            const date =
+                dateInput.value;
 
 
-// ==================================================
-// CLOSE CONFIRMATION
-// ==================================================
+            const time =
+                timeInput.value;
 
-document
-    .getElementById(
-        "close-confirmation"
-    )
-    .addEventListener(
-        "click",
-        function() {
 
-            document
-                .getElementById(
-                    "confirmation"
+            const guests =
+                Number(
+                    guestsInput.value
+                );
+
+
+            const message =
+                createCapacityMessage();
+
+
+            currentCapacity =
+                null;
+
+
+            message.textContent =
+                "";
+
+
+            message.style.color =
+                "#777";
+
+
+            if (
+                !date ||
+                !time
+            ) {
+
+                return;
+
+            }
+
+
+            message.textContent =
+                "Checking availability...";
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        `${API_URL}/reservations/capacity?date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}`
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (
+                    !response.ok ||
+                    !data.success
+                ) {
+
+                    throw new Error(
+                        data.message ||
+                        "Unable to check availability."
+                    );
+
+                }
+
+
+                currentCapacity =
+                    data.capacity;
+
+
+                const remaining =
+                    Number(
+                        data.capacity.remaining
+                    );
+
+
+                if (
+                    remaining <= 0
+                ) {
+
+                    message.textContent =
+                        "This time slot is fully booked. Please choose another time.";
+
+                    message.style.color =
+                        "#b42318";
+
+                    return;
+
+                }
+
+
+                if (
+                    guests > remaining
+                ) {
+
+                    message.textContent =
+                        `Only ${remaining} guest space${remaining === 1 ? "" : "s"} remaining for this time.`;
+
+                    message.style.color =
+                        "#b42318";
+
+                    return;
+
+                }
+
+
+                message.textContent =
+                    `${remaining} guest space${remaining === 1 ? "" : "s"} remaining for this time slot.`;
+
+                message.style.color =
+                    "#777";
+
+
+            } catch (error) {
+
+                console.error(
+                    "Capacity check error:",
+                    error
+                );
+
+
+                currentCapacity =
+                    null;
+
+
+                message.textContent =
+                    "Unable to check availability right now. You can still submit your request.";
+
+                message.style.color =
+                    "#777";
+
+            }
+
+        }
+
+
+        // ==================================================
+        // CAPACITY EVENTS
+        // ==================================================
+
+        dateInput.addEventListener(
+            "change",
+            checkReservationCapacity
+        );
+
+
+        timeInput.addEventListener(
+            "change",
+            checkReservationCapacity
+        );
+
+
+        guestsInput.addEventListener(
+            "change",
+            checkReservationCapacity
+        );
+
+
+        // ==================================================
+        // RESERVATION FORM SUBMIT
+        // ==================================================
+
+        reservationForm.addEventListener(
+            "submit",
+            async function(event) {
+
+                event.preventDefault();
+
+
+                const submitButton =
+                    reservationForm.querySelector(
+                        ".submit-button"
+                    );
+
+
+                const name =
+                    document
+                        .getElementById("name")
+                        .value
+                        .trim();
+
+
+                const email =
+                    document
+                        .getElementById("email")
+                        .value
+                        .trim();
+
+
+                const date =
+                    dateInput.value;
+
+
+                const time =
+                    timeInput.value;
+
+
+                const guests =
+                    guestsInput.value;
+
+
+                const phone =
+                    document
+                        .getElementById("phone")
+                        .value
+                        .trim();
+
+
+                const specialRequest =
+                    document
+                        .getElementById("message")
+                        .value
+                        .trim();
+
+
+                // --------------------------------------------------
+                // FINAL CAPACITY CHECK
+                // --------------------------------------------------
+
+                try {
+
+                    const capacityResponse =
+                        await fetch(
+                            `${API_URL}/reservations/capacity?date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}`
+                        );
+
+
+                    const capacityData =
+                        await capacityResponse.json();
+
+
+                    if (
+                        capacityResponse.ok &&
+                        capacityData.success
+                    ) {
+
+                        const remaining =
+                            Number(
+                                capacityData
+                                    .capacity
+                                    .remaining
+                            );
+
+
+                        if (
+                            Number(guests) >
+                            remaining
+                        ) {
+
+                            alert(
+                                remaining > 0
+                                    ? `Only ${remaining} guest space${remaining === 1 ? "" : "s"} remaining for this time slot. Please choose another time or reduce the number of guests.`
+                                    : "This time slot is fully booked. Please choose another time."
+                            );
+
+
+                            await checkReservationCapacity();
+
+
+                            return;
+
+                        }
+
+                    }
+
+                } catch (error) {
+
+                    console.warn(
+                        "Pre-submit capacity check failed:",
+                        error
+                    );
+
+                }
+
+
+                submitButton.disabled =
+                    true;
+
+
+                submitButton.textContent =
+                    "Sending...";
+
+
+                try {
+
+                    const response =
+                        await fetch(
+                            `${API_URL}/reservations`,
+                            {
+                                method:
+                                    "POST",
+
+                                headers: {
+                                    "Content-Type":
+                                        "application/json"
+                                },
+
+                                body:
+                                    JSON.stringify({
+
+                                        name,
+
+                                        email,
+
+                                        date,
+
+                                        time,
+
+                                        guests,
+
+                                        phone,
+
+                                        specialRequest
+
+                                    })
+
+                            }
+                        );
+
+
+                    const data =
+                        await response.json();
+
+
+                    if (
+                        !response.ok ||
+                        !data.success
+                    ) {
+
+                        throw new Error(
+                            data.message ||
+                            "Unable to submit reservation."
+                        );
+
+                    }
+
+
+                    document
+                        .getElementById(
+                            "confirm-name"
+                        )
+                        .textContent =
+                            name;
+
+
+                    document
+                        .getElementById(
+                            "confirm-guests"
+                        )
+                        .textContent =
+                            guests;
+
+
+                    document
+                        .getElementById(
+                            "confirm-date"
+                        )
+                        .textContent =
+                            formatDisplayDate(
+                                date
+                            );
+
+
+                    document
+                        .getElementById(
+                            "confirm-time"
+                        )
+                        .textContent =
+                            formatDisplayTime(
+                                time
+                            );
+
+
+                    document
+                        .getElementById(
+                            "confirmation"
+                        )
+                        .classList.add(
+                            "show"
+                        );
+
+
+                    reservationForm.reset();
+
+
+                    currentCapacity =
+                        null;
+
+
+                    const capacityMessage =
+                        document.getElementById(
+                            "capacityMessage"
+                        );
+
+
+                    if (
+                        capacityMessage
+                    ) {
+
+                        capacityMessage.textContent =
+                            "";
+
+                    }
+
+
+                } catch (error) {
+
+                    console.error(
+                        "Reservation error:",
+                        error
+                    );
+
+
+                    alert(
+                        error.message ||
+                        "Unable to submit reservation."
+                    );
+
+
+                    await checkReservationCapacity();
+
+
+                } finally {
+
+                    submitButton.disabled =
+                        false;
+
+
+                    submitButton.textContent =
+                        "Request Reservation";
+
+                }
+
+            }
+        );
+
+
+        // ==================================================
+        // CLOSE CONFIRMATION
+        // ==================================================
+
+        document
+            .getElementById(
+                "close-confirmation"
+            )
+            .addEventListener(
+                "click",
+                function() {
+
+                    document
+                        .getElementById(
+                            "confirmation"
+                        )
+                        .classList.remove(
+                            "show"
+                        );
+
+                }
+            );
+
+
+        // ==================================================
+        // CLOSE CONFIRMATION WHEN CLICKING OUTSIDE
+        // ==================================================
+
+        document
+            .getElementById(
+                "confirmation"
+            )
+            .addEventListener(
+                "click",
+                function(event) {
+
+                    if (
+                        event.target ===
+                        this
+                    ) {
+
+                        this.classList.remove(
+                            "show"
+                        );
+
+                    }
+
+                }
+            );
+
+
+        // ==================================================
+        // ESCAPE KEY FOR CONFIRMATION
+        // ==================================================
+
+        document.addEventListener(
+            "keydown",
+            function(event) {
+
+                if (
+                    event.key === "Escape"
+                ) {
+
+                    document
+                        .getElementById(
+                            "confirmation"
+                        )
+                        .classList.remove(
+                            "show"
+                        );
+
+                }
+
+            }
+        );
+
+
+        // ==================================================
+        // FORMAT DATE
+        // ==================================================
+
+        function formatDisplayDate(
+            dateString
+        ) {
+
+            const date =
+                new Date(
+                    `${dateString}T00:00:00`
+                );
+
+
+            return date.toLocaleDateString(
+                "en-IN",
+                {
+                    day:
+                        "numeric",
+
+                    month:
+                        "long",
+
+                    year:
+                        "numeric"
+                }
+            );
+
+        }
+
+
+        // ==================================================
+        // FORMAT TIME
+        // ==================================================
+
+        function formatDisplayTime(
+            timeString
+        ) {
+
+            const parts =
+                timeString.split(":");
+
+
+            if (
+                parts.length < 2
+            ) {
+
+                return timeString;
+
+            }
+
+
+            let hour =
+                Number(
+                    parts[0]
+                );
+
+
+            const minute =
+                parts[1];
+
+
+            const period =
+                hour >= 12
+                    ? "PM"
+                    : "AM";
+
+
+            hour =
+                hour % 12 || 12;
+
+
+            return `${hour}:${minute} ${period}`;
+
+        }
+
+
+        // ==================================================
+        // CURRENCY
+        // ==================================================
+
+        function formatCurrency(
+            amount
+        ) {
+
+            return (
+                "₹" +
+                Number(
+                    amount || 0
+                ).toLocaleString(
+                    "en-IN",
+                    {
+                        minimumFractionDigits:
+                            0,
+
+                        maximumFractionDigits:
+                            2
+                    }
                 )
-                .classList.remove(
-                    "show"
+            );
+
+        }
+
+
+        // ==================================================
+        // ESCAPE HTML
+        // ==================================================
+
+        function escapeHtml(
+            value
+        ) {
+
+            return String(
+                value ?? ""
+            )
+                .replace(
+                    /&/g,
+                    "&amp;"
+                )
+                .replace(
+                    /</g,
+                    "&lt;"
+                )
+                .replace(
+                    />/g,
+                    "&gt;"
+                )
+                .replace(
+                    /"/g,
+                    "&quot;"
+                )
+                .replace(
+                    /'/g,
+                    "&#039;"
                 );
 
         }
-    );
 
 
-// ==================================================
-// FORMAT DATE
-// ==================================================
+        // ==================================================
+        // MINIMUM RESERVATION DATE
+        // ==================================================
 
-function formatDisplayDate(
-    dateString
-) {
-
-    const date =
-        new Date(
-            `${dateString}T00:00:00`
-        );
+        const today =
+            new Date();
 
 
-    return date.toLocaleDateString(
-        "en-IN",
-        {
-            day:
-                "numeric",
-
-            month:
-                "long",
-
-            year:
-                "numeric"
-        }
-    );
-
-}
+        const year =
+            today.getFullYear();
 
 
-// ==================================================
-// FORMAT TIME
-// ==================================================
-
-function formatDisplayTime(
-    timeString
-) {
-
-    const parts =
-        timeString.split(":");
+        const month =
+            String(
+                today.getMonth() + 1
+            ).padStart(
+                2,
+                "0"
+            );
 
 
-    if (
-        parts.length < 2
-    ) {
-
-        return timeString;
-
-    }
-
-
-    let hour =
-        Number(
-            parts[0]
-        );
+        const day =
+            String(
+                today.getDate()
+            ).padStart(
+                2,
+                "0"
+            );
 
 
-    const minute =
-        parts[1];
+        dateInput.min =
+            `${year}-${month}-${day}`;
 
 
-    const period =
-        hour >= 12
-            ? "PM"
-            : "AM";
+        // ==================================================
+        // LOAD MENU ON PAGE LOAD
+        // ==================================================
 
+        loadMenu();
 
-    hour =
-        hour % 12 || 12;
-
-
-    return `${hour}:${minute} ${period}`;
-
-}
-
-
-// ==================================================
-// CURRENCY
-// ==================================================
-
-function formatCurrency(
-    amount
-) {
-
-    return (
-        "₹" +
-        Number(
-            amount || 0
-        ).toLocaleString(
-            "en-IN",
-            {
-                minimumFractionDigits:
-                    0,
-
-                maximumFractionDigits:
-                    2
-            }
-        )
-    );
-
-}
-
-
-// ==================================================
-// ESCAPE HTML
-// ==================================================
-
-function escapeHtml(
-    value
-) {
-
-    return String(
-        value ?? ""
-    )
-        .replace(
-            /&/g,
-            "&amp;"
-        )
-        .replace(
-            /</g,
-            "&lt;"
-        )
-        .replace(
-            />/g,
-            "&gt;"
-        )
-        .replace(
-            /"/g,
-            "&quot;"
-        )
-        .replace(
-            /'/g,
-            "&#039;"
-        );
-
-}
-
-
-// ==================================================
-// MINIMUM RESERVATION DATE
-// ==================================================
-
-const today =
-    new Date();
-
-
-const year =
-    today.getFullYear();
-
-
-const month =
-    String(
-        today.getMonth() + 1
-    ).padStart(
-        2,
-        "0"
-    );
-
-
-const day =
-    String(
-        today.getDate()
-    ).padStart(
-        2,
-        "0"
-    );
-
-
-dateInput.min =
-    `${year}-${month}-${day}`;
-
-
-// ==================================================
-// LOAD MENU ON PAGE LOAD
-// ==================================================
-
-loadMenu();
-
-</script>
+    </script>
 
 </body>
 

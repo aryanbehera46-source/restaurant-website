@@ -2,3 +2,5 @@ server/node_modules/
 .DS_Store
 .env
 *.db
+server/restaurant.db-shm
+server/restaurant.db-wal
