@@ -13,7 +13,7 @@ services:
       - key: PORT
         value: 10000
       - key: DB_PATH
-        value: /var/data/restaurant.db
+        value: restaurant.db
       - key: RESTAURANT_CAPACITY
         value: 50
       - key: ADMIN_USERNAME
@@ -31,7 +31,3 @@ services:
       - key: CORS_ALLOWED_ORIGINS
         value: https://aryanbehera46-source.github.io
 
-    disk:
-      name: royal-table-data
-      mountPath: /var/data
-      sizeGB: 1
