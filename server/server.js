@@ -12,9 +12,19 @@ const app = express();
 
 const PORT = Number(process.env.PORT) || 5000;
 
+const configuredDBPath =
+    String(
+        process.env.DB_PATH || ""
+    ).trim();
+
 const DB_PATH =
-    process.env.DB_PATH ||
-    path.join(__dirname, "restaurant.db");
+    configuredDBPath
+        ? (
+            path.isAbsolute(configuredDBPath)
+                ? configuredDBPath
+                : path.resolve(__dirname, configuredDBPath)
+        )
+        : path.join(__dirname, "restaurant.db");
 
 // ==================================================
 // ADMIN SETTINGS
