@@ -9,6 +9,11 @@
         content="width=device-width, initial-scale=1.0"
     >
 
+    <meta
+        name="description"
+        content="Royal Table — fine dining, seasonal ingredients, refined flavors and unforgettable evenings."
+    >
+
     <title>Royal Table Restaurant</title>
 
     <link
@@ -29,11 +34,24 @@
             Royal Table
         </div>
 
-        <nav>
-            <a href="#home">Home</a>
-            <a href="#menu">Menu</a>
-            <a href="#about">About</a>
-            <a href="#reservation">Contact</a>
+        <nav aria-label="Main navigation">
+
+            <a href="#home">
+                Home
+            </a>
+
+            <a href="#menu">
+                Menu
+            </a>
+
+            <a href="#about">
+                About
+            </a>
+
+            <a href="#reservation">
+                Contact
+            </a>
+
         </nav>
 
         <a
@@ -111,12 +129,14 @@
 
         </div>
 
+
         <div
             id="signatureLoading"
             class="menu-loading"
         >
             Loading our signature dishes...
         </div>
+
 
         <div
             id="signatureError"
@@ -125,6 +145,7 @@
         >
             Unable to load our menu.
         </div>
+
 
         <div
             id="signatureDishGrid"
@@ -152,6 +173,7 @@
             >
 
         </div>
+
 
         <div class="about-content">
 
@@ -222,6 +244,7 @@
         <div
             id="menuCategories"
             class="menu-categories"
+            aria-label="Menu categories"
         ></div>
 
 
@@ -312,6 +335,7 @@
                     <input
                         type="text"
                         id="name"
+                        name="name"
                         placeholder="Your name"
                         autocomplete="name"
                         required
@@ -329,6 +353,7 @@
                     <input
                         type="email"
                         id="email"
+                        name="email"
                         placeholder="you@example.com"
                         autocomplete="email"
                         required
@@ -352,6 +377,7 @@
                     <input
                         type="date"
                         id="date"
+                        name="date"
                         required
                     >
 
@@ -367,6 +393,7 @@
                     <input
                         type="time"
                         id="time"
+                        name="time"
                         required
                     >
 
@@ -387,6 +414,7 @@
 
                     <select
                         id="guests"
+                        name="guests"
                         required
                     >
 
@@ -394,26 +422,85 @@
                             Select guests
                         </option>
 
-                        <option value="1">1 Guest</option>
-                        <option value="2">2 Guests</option>
-                        <option value="3">3 Guests</option>
-                        <option value="4">4 Guests</option>
-                        <option value="5">5 Guests</option>
-                        <option value="6">6 Guests</option>
-                        <option value="7">7 Guests</option>
-                        <option value="8">8 Guests</option>
-                        <option value="9">9 Guests</option>
-                        <option value="10">10 Guests</option>
-                        <option value="11">11 Guests</option>
-                        <option value="12">12 Guests</option>
-                        <option value="13">13 Guests</option>
-                        <option value="14">14 Guests</option>
-                        <option value="15">15 Guests</option>
-                        <option value="16">16 Guests</option>
-                        <option value="17">17 Guests</option>
-                        <option value="18">18 Guests</option>
-                        <option value="19">19 Guests</option>
-                        <option value="20">20 Guests</option>
+                        <option value="1">
+                            1 Guest
+                        </option>
+
+                        <option value="2">
+                            2 Guests
+                        </option>
+
+                        <option value="3">
+                            3 Guests
+                        </option>
+
+                        <option value="4">
+                            4 Guests
+                        </option>
+
+                        <option value="5">
+                            5 Guests
+                        </option>
+
+                        <option value="6">
+                            6 Guests
+                        </option>
+
+                        <option value="7">
+                            7 Guests
+                        </option>
+
+                        <option value="8">
+                            8 Guests
+                        </option>
+
+                        <option value="9">
+                            9 Guests
+                        </option>
+
+                        <option value="10">
+                            10 Guests
+                        </option>
+
+                        <option value="11">
+                            11 Guests
+                        </option>
+
+                        <option value="12">
+                            12 Guests
+                        </option>
+
+                        <option value="13">
+                            13 Guests
+                        </option>
+
+                        <option value="14">
+                            14 Guests
+                        </option>
+
+                        <option value="15">
+                            15 Guests
+                        </option>
+
+                        <option value="16">
+                            16 Guests
+                        </option>
+
+                        <option value="17">
+                            17 Guests
+                        </option>
+
+                        <option value="18">
+                            18 Guests
+                        </option>
+
+                        <option value="19">
+                            19 Guests
+                        </option>
+
+                        <option value="20">
+                            20 Guests
+                        </option>
 
                     </select>
 
@@ -429,8 +516,10 @@
                     <input
                         type="tel"
                         id="phone"
+                        name="phone"
                         placeholder="XXXXXXXXXX"
                         autocomplete="tel"
+                        inputmode="tel"
                         required
                     >
 
@@ -449,6 +538,7 @@
 
                 <textarea
                     id="message"
+                    name="message"
                     rows="5"
                     placeholder="Birthday, anniversary, dietary requirements..."
                 ></textarea>
@@ -473,15 +563,21 @@
         <div
             class="confirmation"
             id="confirmation"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="confirmation-title"
         >
 
             <div class="confirmation-box">
 
-                <span class="confirmation-icon">
+                <span
+                    class="confirmation-icon"
+                    aria-hidden="true"
+                >
                     ✓
                 </span>
 
-                <h3>
+                <h3 id="confirmation-title">
                     Reservation Received
                 </h3>
 
@@ -537,6 +633,42 @@
         let allMenuItems = [];
 
         let selectedCategory = "all";
+
+
+        const localMenuImages = {
+            "Crispy Corn":
+                "assets/menu/crispy-corn.png",
+            "Chicken Tikka":
+                "assets/menu/chicken-tikka.png",
+            "Malai Chicken Tikka":
+                "assets/menu/malai-chicken-tikka.png",
+            "Paneer Tikka":
+                "assets/menu/paneer-tikka.png",
+            "Hara Bhara Kebab":
+                "assets/menu/hara-bhara-kebab.png",
+            "Dahi Ke Kebab":
+                "assets/menu/dahi-ke-kebab.png",
+            "Tandoori Prawns":
+                "assets/menu/tandoori-prawns.png",
+            "Mutton Seekh Kebab":
+                "assets/menu/mutton-seekh-kebab.png",
+            "Tandoori Chicken":
+                "assets/menu/tandoori-chicken.png",
+            "Afghani Chicken":
+                "assets/menu/afghani-chicken.png",
+            "Tandoori Fish":
+                "assets/menu/tandoori-fish.png",
+            "Paneer Malai Tikka": "assets/menu/paneer-malai-tikka.png",
+            "Tandoori Mushroom": "assets/menu/tandoori-mushroom.png",
+            "Paneer Butter Masala": "assets/menu/paneer-butter-masala.png",
+            "Kadai Paneer": "assets/menu/kadai-paneer.png",
+            "Palak Paneer": "assets/menu/palak-paneer.png",
+            "Shahi Paneer": "assets/menu/shahi-paneer.png",
+            "Dal Makhani": "assets/menu/dal-makhani.png",
+            "Dal Tadka": "assets/menu/dal-tadka.png",
+            "Mix Vegetable Curry": "assets/menu/mix-vegetable-curry.png",
+            "Mushroom Masala": "assets/menu/mushroom-masala.png"
+        };
 
 
         // ==================================================
@@ -969,43 +1101,75 @@
                         "menu-item";
 
 
+                    const image =
+                        item.image &&
+                        String(
+                            item.image
+                        ).trim()
+                            ? item.image
+                            : (
+                                localMenuImages[
+                                    item.name
+                                ] ||
+                                ""
+                            );
+
+
                     menuItem.innerHTML = `
 
-                        <div>
+                        ${
+                            image
+                                ? `
+                                    <div class="menu-item-image">
+                                        <img
+                                            src="${escapeHtml(image)}"
+                                            alt="${escapeHtml(item.name)}"
+                                            loading="lazy"
+                                        >
+                                    </div>
+                                `
+                                : ""
+                        }
 
-                            <h3>
-                                ${escapeHtml(item.name)}
-                            </h3>
+                        <div class="menu-item-content">
 
-                            ${
-                                item.description
-                                    ? `
-                                        <p>
-                                            ${escapeHtml(
-                                                item.description
-                                            )}
-                                        </p>
-                                    `
-                                    : ""
-                            }
+                            <div class="menu-item-main">
 
-                            ${
-                                item.category
-                                    ? `
-                                        <small>
-                                            ${escapeHtml(
-                                                item.category
-                                            )}
-                                        </small>
-                                    `
-                                    : ""
-                            }
+                                <h3>
+                                    ${escapeHtml(item.name)}
+                                </h3>
+
+                                ${
+                                    item.description
+                                        ? `
+                                            <p>
+                                                ${escapeHtml(
+                                                    item.description
+                                                )}
+                                            </p>
+                                        `
+                                        : ""
+                                }
+
+                                ${
+                                    item.category
+                                        ? `
+                                            <small>
+                                                ${escapeHtml(
+                                                    item.category
+                                                )}
+                                            </small>
+                                        `
+                                        : ""
+                                }
+
+                            </div>
+
+                            <span class="menu-item-price">
+                                ${formatCurrency(item.price)}
+                            </span>
 
                         </div>
-
-                        <span>
-                            ${formatCurrency(item.price)}
-                        </span>
 
                     `;
 
@@ -1199,8 +1363,10 @@
                     message.textContent =
                         "This time slot is fully booked. Please choose another time.";
 
+
                     message.style.color =
                         "#b42318";
+
 
                     return;
 
@@ -1214,8 +1380,10 @@
                     message.textContent =
                         `Only ${remaining} guest space${remaining === 1 ? "" : "s"} remaining for this time.`;
 
+
                     message.style.color =
                         "#b42318";
+
 
                     return;
 
@@ -1224,6 +1392,7 @@
 
                 message.textContent =
                     `${remaining} guest space${remaining === 1 ? "" : "s"} remaining for this time slot.`;
+
 
                 message.style.color =
                     "#777";
@@ -1243,6 +1412,7 @@
 
                 message.textContent =
                     "Unable to check availability right now. You can still submit your request.";
+
 
                 message.style.color =
                     "#777";
@@ -1380,6 +1550,7 @@
                         }
 
                     }
+
 
                 } catch (error) {
 

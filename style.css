@@ -1113,3 +1113,74 @@ nav a:hover {
         padding: 8px 14px;
     }
 }
+/* =========================================================
+   MENU ITEM IMAGES
+========================================================= */
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.menu-item-image {
+    width: 120px;
+    height: 90px;
+    flex: 0 0 120px;
+    overflow: hidden;
+    border-radius: 6px;
+}
+
+.menu-item-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.menu-item-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 30px;
+}
+
+.menu-item-main {
+    min-width: 0;
+}
+
+.menu-item-price {
+    flex-shrink: 0;
+}
+
+/* =========================================================
+   MOBILE MENU ITEM IMAGES
+========================================================= */
+
+@media (max-width: 600px) {
+
+    .menu-item {
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .menu-item-image {
+        width: 90px;
+        height: 75px;
+        flex-basis: 90px;
+    }
+
+    .menu-item-content {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .menu-item-price {
+        margin-top: 0;
+    }
+
+}
