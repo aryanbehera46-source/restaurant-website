@@ -420,8 +420,8 @@ nav a:hover {
 .contact {
     padding: 92px 60px;
     scroll-margin-top: 80px;
-    background: #eee7dc;
-    color: #211d19;
+    background: #11100f;
+    color: #f7f3ed;
 }
 
 .contact-intro {
@@ -440,14 +440,14 @@ nav a:hover {
 
 .contact-intro h2 {
     margin: 0;
-    color: #211d19;
+    color: #f7f3ed;
     font-size: clamp(40px, 4.4vw, 56px);
     line-height: 1.02;
 }
 
 .contact-intro > p:last-child {
     margin: 0 0 5px;
-    color: #655d55;
+    color: #aaa198;
     font-family: Arial, sans-serif;
     font-size: 16px;
     line-height: 1.75;
@@ -458,14 +458,14 @@ nav a:hover {
     grid-template-columns: repeat(3, 1fr);
     max-width: 1120px;
     margin: 0 auto;
-    border-top: 1px solid #bdb2a4;
-    border-bottom: 1px solid #bdb2a4;
+    border-top: 1px solid #38322b;
+    border-bottom: 1px solid #38322b;
 }
 
 .contact-card {
     min-height: 230px;
     padding: 34px 32px 32px;
-    border-right: 1px solid #bdb2a4;
+    border-right: 1px solid #38322b;
 }
 
 .contact-card:last-child {
@@ -473,7 +473,7 @@ nav a:hover {
 }
 
 .contact-number {
-    color: #9b6d21;
+    color: #d4af37;
     font-family: Arial, sans-serif;
     font-size: 11px;
     font-weight: 700;
@@ -482,13 +482,13 @@ nav a:hover {
 
 .contact-card h3 {
     margin: 18px 0 22px;
-    color: #211d19;
+    color: #f7f3ed;
     font-size: 28px;
 }
 
 .contact-card p,
 .contact-card small {
-    color: #655d55;
+    color: #aaa198;
     font-family: Arial, sans-serif;
     font-size: 14px;
     line-height: 1.65;
@@ -1311,7 +1311,7 @@ nav a:hover {
         min-height: 0;
         padding: 30px 0;
         border-right: 0;
-        border-bottom: 1px solid #bdb2a4;
+        border-bottom: 1px solid #38322b;
     }
 
     .dynamic-menu-filters {
