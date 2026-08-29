@@ -10,7 +10,7 @@
 >
 
 <title>Royal Table — Admin Dashboard</title>
-<link rel="stylesheet" href="ui.css?v=premium-20260829">
+<link rel="stylesheet" href="ui.css?v=final-fix-20260829">
 
 <style>
 
@@ -2516,6 +2516,10 @@ tr:hover{
                             </option>
 
                             <option>
+                                Tandoor
+                            </option>
+
+                            <option>
                                 Soups
                             </option>
 
@@ -2986,12 +2990,20 @@ async function loadOperations(){
                 fetch(`${API_URL}/grocery`, { headers:getAuthHeaders() })
             ]);
 
-        if([
+        const responses = [
             staffResponse,
             kitchenResponse,
             inventoryResponse,
             groceryResponse
-        ].some(response => !response.ok)){
+        ];
+
+        if(responses.some(response => response.status === 401 || response.status === 403)){
+            const sessionError = new Error("Your admin session has expired. Please sign in again.");
+            sessionError.code = "AUTH_EXPIRED";
+            throw sessionError;
+        }
+
+        if(responses.some(response => !response.ok)){
             throw new Error("Operational data is unavailable.");
         }
 
@@ -3036,6 +3048,14 @@ async function loadOperations(){
 
     }catch(error){
 
+        if(error.code === "AUTH_EXPIRED"){
+            logout();
+            const loginError = document.getElementById("loginError");
+            loginError.textContent = error.message;
+            loginError.style.display = "block";
+            return;
+        }
+
         [
             "staffStatus",
             "kitchenStatus",
@@ -3043,7 +3063,7 @@ async function loadOperations(){
             "groceryStatus"
         ].forEach(id => {
             document.getElementById(id).textContent =
-                "Unable to load. Refresh or sign in again.";
+                "Operational data is temporarily unavailable. Use Refresh to retry.";
         });
 
         console.error("Operational overview error:", error);
@@ -6213,6 +6233,6 @@ if(
 
 </script>
 
-<script src="ui.js?v=premium-20260829"></script>
+<script src="ui.js?v=final-fix-20260829"></script>
 </body>
 </html>

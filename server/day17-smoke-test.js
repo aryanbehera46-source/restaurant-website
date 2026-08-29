@@ -46,12 +46,29 @@ async function run() {
     const invalidLogin = await request("/staff/login", { method: "POST", body: JSON.stringify({ username: "testchef", password: "wrong-password" }) });
     assert(invalidLogin.status === 401, "invalid staff credentials were not rejected");
 
-    const chefLogin = await request("/staff/login", { method: "POST", body: JSON.stringify({ username: "testchef", password: "secure-chef-password" }) });
+    const chefLogin = await request("/staff/login", { method: "POST", body: JSON.stringify({ username: "testchef", password: "secure-chef-password", portal: "chef" }) });
     assert(chefLogin.status === 200 && chefLogin.body.token, "staff login failed");
     const chefToken = chefLogin.body.token;
+    const authenticatedDashboard = await request("/chef/dashboard?date=2026-08-29", { token: chefToken });
+    assert(authenticatedDashboard.status === 200, "chef token was not accepted after login");
+
+    const staffAdmin = await request("/staff", {
+        method: "POST", token: adminLogin.body.token,
+        body: JSON.stringify({ name: "Portal Admin", username: "portaladmin", password: "secure-admin-password", role: "admin" })
+    });
+    const adminPortalLogin = await request("/staff/login", { method: "POST", body: JSON.stringify({ username: "portaladmin", password: "secure-admin-password", portal: "chef" }) });
+    assert(staffAdmin.status === 201 && adminPortalLogin.status === 401, "admin credential was accepted by the chef portal");
 
     const forbidden = await request("/staff", { token: chefToken });
     assert([401, 403].includes(forbidden.status), "chef was allowed into admin staff management");
+
+    const reset = await request(`/staff/${created.body.staff.id}`, {
+        method: "PUT", token: adminLogin.body.token, body: JSON.stringify({ password: "replacement-chef-password" })
+    });
+    assert(reset.status === 200, "safe chef password reset failed");
+    const oldPasswordLogin = await request("/staff/login", { method: "POST", body: JSON.stringify({ username: "testchef", password: "secure-chef-password", portal: "chef" }) });
+    const resetPasswordLogin = await request("/staff/login", { method: "POST", body: JSON.stringify({ username: "testchef", password: "replacement-chef-password", portal: "chef" }) });
+    assert(oldPasswordLogin.status === 401 && resetPasswordLogin.status === 200, "chef reset credential flow failed");
 
     const ingredient = await request("/ingredients", {
         method: "POST", token: chefToken,
@@ -86,7 +103,7 @@ async function run() {
         method: "PUT", token: adminLogin.body.token, body: JSON.stringify({ active: false })
     });
     assert(deactivated.status === 200, "staff deactivation failed");
-    const inactiveLogin = await request("/staff/login", { method: "POST", body: JSON.stringify({ username: "testchef", password: "secure-chef-password" }) });
+    const inactiveLogin = await request("/staff/login", { method: "POST", body: JSON.stringify({ username: "testchef", password: "replacement-chef-password", portal: "chef" }) });
     assert(inactiveLogin.status === 401, "inactive staff login was not rejected");
 
     console.log("Day 17 local API smoke tests: PASS");

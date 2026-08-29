@@ -1198,8 +1198,9 @@ app.post("/staff/login", async (req, res) => {
     }
     const username = clean(req.body?.username, 100);
     const password = String(req.body?.password || "");
+    const portal = clean(req.body?.portal, 20).toLowerCase();
     const staff = db.prepare("SELECT * FROM staff_users WHERE username = ?").get(username);
-    if (!staff || !staff.active || !(await bcrypt.compare(password, staff.passwordHash))) {
+    if (!staff || !staff.active || (portal === "chef" && staff.role !== "chef") || !(await bcrypt.compare(password, staff.passwordHash))) {
         return res.status(401).json({ success: false, message: "Invalid username or password." });
     }
     staffLoginAttempts.delete(clientKey);

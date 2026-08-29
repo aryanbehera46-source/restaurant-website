@@ -20,7 +20,7 @@
         rel="stylesheet"
         href="style.css"
     >
-    <link rel="stylesheet" href="ui.css?v=premium-20260829">
+    <link rel="stylesheet" href="ui.css?v=final-fix-20260829">
 </head>
 
 <body>
@@ -972,20 +972,26 @@
             );
 
 
-            const categories = [
-                ...new Set(
-                    allMenuItems
-                        .filter(
-                            item =>
-                                Number(item.available) === 1
-                        )
-                        .map(
-                            item =>
-                                item.category
-                        )
-                        .filter(Boolean)
-                )
+            const categoryOrder = [
+                "Beverages",
+                "Breads",
+                "Desserts",
+                "Main Course",
+                "Rice",
+                "Starters",
+                "Tandoor"
             ];
+
+            const availableCategories = new Set(
+                allMenuItems
+                    .filter(item => Number(item.available) === 1)
+                    .map(item => String(item.category || "").trim())
+                    .filter(Boolean)
+            );
+
+            const categories = categoryOrder.filter(
+                category => availableCategories.has(category)
+            );
 
 
             categories.forEach(
@@ -1036,6 +1042,8 @@
                 }
             );
 
+            updateCategoryButtons();
+
         }
 
 
@@ -1056,6 +1064,11 @@
                             "active",
                             button.dataset.category ===
                             selectedCategory
+                        );
+
+                        button.setAttribute(
+                            "aria-pressed",
+                            String(button.dataset.category === selectedCategory)
                         );
 
                     }
@@ -1099,8 +1112,7 @@
                 items =
                     items.filter(
                         item =>
-                            item.category ===
-                            selectedCategory
+                            String(item.category || "").trim() === selectedCategory
                     );
 
             }
@@ -2016,7 +2028,7 @@
 
     </script>
 
-<script src="ui.js?v=premium-20260829"></script>
+<script src="ui.js?v=final-fix-20260829"></script>
 </body>
 
 </html>
