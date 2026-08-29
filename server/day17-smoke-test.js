@@ -5,6 +5,8 @@ process.env.ADMIN_PASSWORD = "local-test-password";
 process.env.JWT_SECRET = "local-test-secret-that-is-at-least-thirty-two-characters";
 process.env.DB_PATH = path.join(os.tmpdir(), `royal-table-day17-${Date.now()}.db`);
 process.env.PORT = "5051";
+process.env.GMAIL_USER = "";
+process.env.GMAIL_APP_PASSWORD = "";
 
 require("./server");
 

@@ -10,6 +10,7 @@
 >
 
 <title>Royal Table — Admin Dashboard</title>
+<link rel="stylesheet" href="ui.css">
 
 <style>
 
@@ -1415,7 +1416,7 @@ tr:hover{
 </head>
 
 
-<body>
+<body data-admin-ui="true">
 
 
 <!-- ==================================================
@@ -1509,13 +1510,13 @@ tr:hover{
     </p>
 
     <nav class="admin-nav" aria-label="Administration sections">
-        <a href="#reservations">Reservations</a>
-        <a href="#analytics">Analytics</a>
-        <a href="#menu">Menu</a>
-        <a href="staff.html">Staff</a>
-        <a href="#operations">Kitchen</a>
-        <a href="#inventoryCard">Inventory</a>
-        <a href="#groceryCard">Grocery</a>
+        <a href="#overview" data-view="overview">Overview</a>
+        <a href="#reservations" data-view="reservations">Reservations &amp; Orders</a>
+        <a href="#billing" data-view="billing">Billing &amp; Payments</a>
+        <a href="#menu" data-view="menu">Menu</a>
+        <a href="#operations" data-view="operations">Staff · Kitchen · Stock</a>
+        <a href="#analytics" data-view="analytics">Analytics &amp; AI</a>
+        <a href="staff.html">Staff Access</a>
         <a href="chef.html" target="_blank" rel="noopener">Chef Portal</a>
     </nav>
 
@@ -1523,6 +1524,7 @@ tr:hover{
 
 
 <div class="container">
+    <div class="admin-view-heading"><div><p class="muted">ADMIN HOME</p><h2 id="adminViewTitle">Overview</h2><p id="adminViewSubtitle">Today’s essentials, alerts and recent performance at a glance.</p></div></div>
 
 
     <!-- ==================================================
@@ -2652,6 +2654,7 @@ tr:hover{
     id="toastContainer"
     class="toast-container"
 ></div>
+<div id="printReceipt" class="receipt-print" aria-hidden="true"></div>
 
 
 <script>
@@ -2660,8 +2663,9 @@ tr:hover{
    CONFIGURATION
 ================================================== */
 
-const API_URL =
-    "https://royal-table-api.onrender.com";
+const API_URL = ["localhost","127.0.0.1"].includes(location.hostname)
+    ? "http://127.0.0.1:5001"
+    : "https://royal-table-api.onrender.com";
 
 const localMenuImages = {
     "Crispy Corn": "assets/menu/crispy-corn.png",
@@ -4456,7 +4460,17 @@ async function updatePayment(id){
     await loadReservationOrders(); showToast(amountPaid ? "Payment recorded." : "Payment cleared.","success");
 }
 
-function printReceipt(){ window.print(); }
+function printReceipt(){
+    const orders=window.currentReservationOrders||[];
+    const guest=document.getElementById("detailName").textContent;
+    const reservation=document.getElementById("detailId").textContent;
+    const date=document.getElementById("detailDate").textContent;
+    const time=document.getElementById("detailTime").textContent;
+    const rows=orders.flatMap(order=>order.items.map(item=>`<tr><td>${escapeHtml(item.itemName)}</td><td>${item.quantity}</td><td>${formatCurrency(item.unitPrice)}</td><td>${formatCurrency(item.lineTotal)}</td></tr>`)).join("");
+    const subtotal=orders.reduce((s,o)=>s+Number(o.subtotal),0),discount=orders.reduce((s,o)=>s+Number(o.discountAmount),0),tax=orders.reduce((s,o)=>s+Number(o.taxAmount),0),service=orders.reduce((s,o)=>s+Number(o.serviceChargeAmount),0),total=orders.reduce((s,o)=>s+Number(o.grandTotal),0),paid=orders.reduce((s,o)=>s+Number(o.amountPaid),0);
+    document.getElementById("printReceipt").innerHTML=`<header><div><h1>Royal Table</h1><p>Fine Dining Restaurant</p></div><div><strong>Receipt</strong><br>Reservation #${escapeHtml(reservation)}<br>${escapeHtml(date)} · ${escapeHtml(time)}</div></header><p><strong>Guest:</strong> ${escapeHtml(guest)}</p><table><thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Amount</th></tr></thead><tbody>${rows}</tbody></table><div class="totals"><div><span>Subtotal</span><span>${formatCurrency(subtotal)}</span></div><div><span>Discount</span><span>−${formatCurrency(discount)}</span></div><div><span>Tax</span><span>${formatCurrency(tax)}</span></div><div><span>Service charge</span><span>${formatCurrency(service)}</span></div><div class="grand"><span>Total</span><span>${formatCurrency(total)}</span></div><div><span>Paid</span><span>${formatCurrency(paid)}</span></div><div><strong>Balance</strong><strong>${formatCurrency(Math.max(0,total-paid))}</strong></div></div><p style="margin-top:28px;text-align:center">Thank you for dining with us.</p>`;
+    window.print();
+}
 
 async function loadReservationOrders(){
     if(!currentReservationId) return;
@@ -6199,5 +6213,6 @@ if(
 
 </script>
 
+<script src="ui.js"></script>
 </body>
 </html>

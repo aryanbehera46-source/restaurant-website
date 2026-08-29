@@ -1,0 +1,21 @@
+:root{--ui-bg:#f5f1e9;--ui-surface:#fffdf8;--ui-surface-2:#f0e9dc;--ui-text:#241d16;--ui-muted:#75695d;--ui-border:#ded3c3;--ui-accent:#9b681f;--ui-accent-2:#6f4611;--ui-danger:#a53a32;--ui-success:#28724a;--ui-shadow:0 18px 50px rgba(42,30,17,.09);color-scheme:light}
+:root[data-theme="dark"]{--ui-bg:#12100e;--ui-surface:#1d1915;--ui-surface-2:#29221c;--ui-text:#f7f0e7;--ui-muted:#b9aa9a;--ui-border:#42382f;--ui-accent:#dda94e;--ui-accent-2:#f0c872;--ui-danger:#ef8277;--ui-success:#78c99a;--ui-shadow:0 20px 55px rgba(0,0,0,.28);color-scheme:dark}
+body{background:var(--ui-bg)!important;color:var(--ui-text)!important}
+body,input,select,textarea,button{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif!important}
+h1,h2,h3,.logo{font-family:Georgia,"Times New Roman",serif!important;letter-spacing:-.025em}
+input,select,textarea{background:var(--ui-surface)!important;color:var(--ui-text)!important;border-color:var(--ui-border)!important}
+.card,.stat-card,.analytics-card,.analytics-panel,.menu-section,.operations-section,.operations-card,.filters,.table-wrapper,.modal-box,.detail-item{background:var(--ui-surface)!important;color:var(--ui-text)!important;border-color:var(--ui-border)!important;box-shadow:var(--ui-shadow)}
+.muted,.analytics-card-subtitle,.operations-status,.detail-label{color:var(--ui-muted)!important}
+table th{background:var(--ui-surface-2)!important;color:var(--ui-text)!important}table td{border-color:var(--ui-border)!important}
+button,.reservation-button,.hero-button{border-radius:10px!important}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid color-mix(in srgb,var(--ui-accent) 50%,transparent);outline-offset:2px}
+.theme-switcher{position:fixed;right:18px;bottom:18px;z-index:10020;display:flex;gap:4px;padding:5px;background:var(--ui-surface);border:1px solid var(--ui-border);border-radius:999px;box-shadow:var(--ui-shadow)}
+.theme-switcher button{min-width:42px;padding:8px 11px!important;background:transparent!important;color:var(--ui-muted)!important;font-size:12px!important}
+.theme-switcher button[aria-pressed="true"]{background:var(--ui-accent)!important;color:#fff!important}
+.admin-nav{position:sticky;top:0;z-index:1000;display:flex!important;gap:7px!important;overflow-x:auto;padding:10px 18px!important;background:color-mix(in srgb,var(--ui-surface) 94%,transparent);border-bottom:1px solid var(--ui-border);backdrop-filter:blur(16px)}
+.admin-nav a{white-space:nowrap;border-radius:9px!important;padding:9px 12px!important;text-decoration:none!important;color:var(--ui-muted)!important}
+.admin-nav a.active{background:var(--ui-accent)!important;color:#fff!important}
+.admin-view-heading{display:flex;justify-content:space-between;gap:20px;align-items:end;margin:24px 0 18px}.admin-view-heading p{color:var(--ui-muted);margin-top:5px}
+.admin-module-hidden{display:none!important}
+.receipt-print{display:none}
+@media(max-width:760px){.theme-switcher{right:10px;bottom:10px}.admin-view-heading{align-items:start;flex-direction:column}.admin-nav{padding-inline:10px!important}.table-wrapper,.menu-table-wrapper,.card{overflow-x:auto}body{overflow-x:hidden}}
+@media print{body *{visibility:hidden!important}.receipt-print,.receipt-print *{visibility:visible!important}.receipt-print{display:block!important;position:absolute;inset:0;width:100%;padding:20mm;color:#111!important;background:#fff!important;font:12pt Georgia,serif}.receipt-print header{display:flex;justify-content:space-between;border-bottom:2px solid #111;padding-bottom:12px;margin-bottom:18px}.receipt-print table{width:100%;border-collapse:collapse}.receipt-print th,.receipt-print td{padding:8px;border-bottom:1px solid #bbb;background:#fff!important;color:#111!important}.receipt-print .totals{margin-left:auto;width:310px;margin-top:16px}.receipt-print .totals div{display:flex;justify-content:space-between;padding:4px}.receipt-print .grand{font-size:15pt;font-weight:bold;border-top:2px solid #111}.theme-switcher{display:none!important}@page{margin:10mm}}

@@ -7,7 +7,8 @@
     "start": "node server.js",
     "dev": "node server.js",
     "test": "node day17-smoke-test.js",
-    "test:day18": "node day18-smoke-test.js"
+    "test:day18": "node day18-smoke-test.js",
+    "test:final-qa": "node final-qa-test.js"
   },
   "keywords": [],
   "author": "",

@@ -20,6 +20,7 @@
         rel="stylesheet"
         href="style.css"
     >
+    <link rel="stylesheet" href="ui.css">
 </head>
 
 <body>
@@ -622,8 +623,9 @@
         // API
         // ==================================================
 
-        const API_URL =
-            "https://royal-table-api.onrender.com";
+        const API_URL = ["localhost","127.0.0.1"].includes(location.hostname)
+            ? "http://127.0.0.1:5001"
+            : "https://royal-table-api.onrender.com";
 
 
         // ==================================================
@@ -2014,6 +2016,7 @@
 
     </script>
 
+<script src="ui.js"></script>
 </body>
 
 </html>
