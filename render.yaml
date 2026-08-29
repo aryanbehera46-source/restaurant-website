@@ -13,7 +13,7 @@ services:
       - key: PORT
         value: 10000
       - key: DB_PATH
-        value: /tmp/restaurant.db
+        value: /var/data/restaurant.db
       - key: RESTAURANT_CAPACITY
         value: 50
       - key: ADMIN_USERNAME
@@ -29,5 +29,9 @@ services:
       - key: RESERVATION_EMAIL
         sync: false
       - key: CORS_ALLOWED_ORIGINS
-        value: https://nbehera46-source.github.io
+        value: https://aryanbehera46-source.github.io
 
+    disk:
+      name: royal-table-data
+      mountPath: /var/data
+      sizeGB: 1
