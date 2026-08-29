@@ -1409,6 +1409,7 @@ tr:hover{
 </style>
 <style>
 .order-workspace{display:grid;gap:14px}.order-builder,.order-card{border:1px solid #d7a64a55;border-radius:10px;padding:14px;background:#fffaf4}.order-builder-row{display:grid;grid-template-columns:minmax(180px,2fr) 90px minmax(160px,1fr) auto;gap:8px}.order-line{display:grid;grid-template-columns:1fr auto auto;gap:10px;padding:8px 0;border-bottom:1px solid #eadfce}.order-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.order-status{text-transform:uppercase;font-size:12px;font-weight:800;color:#8a5d10}.order-total{font-size:18px;font-weight:800;text-align:right}@media(max-width:700px){.order-builder-row{grid-template-columns:1fr}.order-line{grid-template-columns:1fr}}
+.billing-controls label,.payment-controls label{display:flex;align-items:center;gap:5px}.billing-controls input,.payment-controls input{width:90px}@media print{body *{visibility:hidden}.reservation-modal,.reservation-modal *{visibility:visible}.reservation-modal{position:absolute;inset:0;background:#fff}.modal-close,.order-builder,.order-actions,.bill-editor{display:none!important}.order-card{break-inside:avoid;box-shadow:none}.modal-content{max-height:none;overflow:visible;box-shadow:none}}
 </style>
 
 </head>
@@ -4403,11 +4404,20 @@ function editOrder(id){
 
 async function submitOrder(id){ await orderApi(`/orders/${id}/submit`,{method:"POST",body:"{}"}); await loadReservationOrders(); showToast("KOT sent to Chef Portal.","success"); }
 
+async function updateBilling(id){
+    const value=name=>Number(document.getElementById(`${name}-${id}`).value);
+    await orderApi(`/orders/${id}/billing`,{method:"PUT",body:JSON.stringify({discountPercent:value("discount"),taxRate:value("tax"),serviceChargeRate:value("service")})});
+    await loadReservationOrders(); await loadReservations(); showToast("Server-calculated bill updated.","success");
+}
+
 async function updatePayment(id){
     const method=document.getElementById(`payment-${id}`).value;
-    await orderApi(`/orders/${id}/payment`,{method:"PUT",body:JSON.stringify(method ? {paymentStatus:"paid",paymentMethod:method} : {paymentStatus:"unpaid",paymentMethod:null})});
-    await loadReservationOrders(); showToast(method ? "Payment recorded." : "Payment marked unpaid.","success");
+    const amountPaid=Number(document.getElementById(`amount-paid-${id}`).value);
+    await orderApi(`/orders/${id}/payment`,{method:"PUT",body:JSON.stringify({amountPaid,paymentMethod:method||null})});
+    await loadReservationOrders(); showToast(amountPaid ? "Payment recorded." : "Payment cleared.","success");
 }
+
+function printReceipt(){ window.print(); }
 
 async function loadReservationOrders(){
     if(!currentReservationId) return;
@@ -4415,7 +4425,7 @@ async function loadReservationOrders(){
     const data=await orderApi(`/reservations/${currentReservationId}/orders`);
     window.currentReservationOrders=data.orders;
     const target=document.getElementById("reservationOrders");
-    target.innerHTML=data.orders.length ? data.orders.map(order => `<section class="order-card"><div><strong>Order ${order.orderNumber} / KOT ${order.id}</strong> <span class="order-status">${escapeHtml(order.status)}</span></div>${order.items.map(item=>`<div class="order-line"><span>${escapeHtml(item.itemName)}${item.notes?`<br><small>${escapeHtml(item.notes)}</small>`:""}</span><span>${item.quantity} × ${formatCurrency(item.unitPrice)}</span><span>${formatCurrency(item.lineTotal)}</span></div>`).join("")}<div class="order-total">${formatCurrency(order.subtotal)}</div>${order.notes?`<p><strong>Kitchen:</strong> ${escapeHtml(order.notes)}</p>`:""}<div class="order-actions">${["draft","new"].includes(order.status)?`<button type="button" onclick="editOrder(${order.id})">Edit</button>`:""}${order.status==="draft"?`<button type="button" onclick="submitOrder(${order.id})">Send KOT</button>`:""}<select id="payment-${order.id}"><option value="">Unpaid</option><option value="cash" ${order.paymentMethod==="cash"?"selected":""}>Paid cash</option><option value="card" ${order.paymentMethod==="card"?"selected":""}>Paid card</option><option value="upi" ${order.paymentMethod==="upi"?"selected":""}>Paid UPI</option><option value="other" ${order.paymentMethod==="other"?"selected":""}>Paid other</option></select><button type="button" onclick="updatePayment(${order.id})">Save payment</button></div></section>`).join("") + `<div class="order-total">Reservation total ${formatCurrency(data.billTotal)}</div>` : "<p>No itemized orders yet.</p>";
+    target.innerHTML=data.orders.length ? data.orders.map(order => `<section class="order-card"><div><strong>Order ${order.orderNumber} / KOT ${order.id}</strong> <span class="order-status">${escapeHtml(order.status)} · ${escapeHtml(order.paymentStatus.replace("_"," "))}</span></div>${order.items.map(item=>`<div class="order-line"><span>${escapeHtml(item.itemName)}${item.notes?`<br><small>${escapeHtml(item.notes)}</small>`:""}</span><span>${item.quantity} × ${formatCurrency(item.unitPrice)}</span><span>${formatCurrency(item.lineTotal)}</span></div>`).join("")}<div>Subtotal ${formatCurrency(order.subtotal)} · Discount ${formatCurrency(order.discountAmount)} · Tax ${formatCurrency(order.taxAmount)} · Service ${formatCurrency(order.serviceChargeAmount)}</div><div class="order-total">Grand total ${formatCurrency(order.grandTotal)}</div>${order.notes?`<p><strong>Kitchen:</strong> ${escapeHtml(order.notes)}</p>`:""}<div class="order-actions billing-controls"><label>Discount % <input id="discount-${order.id}" type="number" min="0" max="100" step="0.01" value="${order.discountPercent}"></label><label>Tax % <input id="tax-${order.id}" type="number" min="0" max="100" step="0.01" value="${order.taxRate}"></label><label>Service % <input id="service-${order.id}" type="number" min="0" max="100" step="0.01" value="${order.serviceChargeRate}"></label><button type="button" onclick="updateBilling(${order.id})">Update bill</button></div><div class="order-actions payment-controls">${["draft","new"].includes(order.status)?`<button type="button" onclick="editOrder(${order.id})">Edit</button>`:""}${order.status==="draft"?`<button type="button" onclick="submitOrder(${order.id})">Send KOT</button>`:""}<label>Amount paid <input id="amount-paid-${order.id}" type="number" min="0" max="${order.grandTotal}" step="0.01" value="${order.amountPaid}"></label><select id="payment-${order.id}"><option value="">Select method</option><option value="cash" ${order.paymentMethod==="cash"?"selected":""}>Cash</option><option value="card" ${order.paymentMethod==="card"?"selected":""}>Card</option><option value="upi" ${order.paymentMethod==="upi"?"selected":""}>UPI</option><option value="other" ${order.paymentMethod==="other"?"selected":""}>Other</option></select><button type="button" onclick="updatePayment(${order.id})">Save payment</button></div><div><strong>Paid:</strong> ${formatCurrency(order.amountPaid)} · <strong>Balance:</strong> ${formatCurrency(order.remainingBalance)}</div></section>`).join("") + `<div class="order-total">Reservation total ${formatCurrency(data.billTotal)} · Paid ${formatCurrency(data.amountPaid)} · Balance ${formatCurrency(data.remainingBalance)}</div><div class="order-actions"><button type="button" onclick="printReceipt()">Print itemized receipt</button></div>` : "<p>No itemized orders yet.</p>";
 }
 
 /* ==================================================

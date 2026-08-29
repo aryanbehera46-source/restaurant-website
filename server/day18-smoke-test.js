@@ -53,12 +53,18 @@ async function run() {
     const kitchen = await request("/kitchen/orders?date=2026-09-01", { token: chef });
     assert(kitchen.status === 200 && kitchen.body.orders.length === 1, "Chef KOT listing failed");
 
-    const paid = await request(`/orders/${firstId}/payment`, { method: "PUT", token: admin, body: JSON.stringify({ paymentStatus: "paid", paymentMethod: "upi" }) });
-    assert(paid.body.order.paymentStatus === "paid" && paid.body.order.paymentMethod === "upi" && paid.body.order.paidAt, "payment recording failed");
+    const adjusted = await request(`/orders/${firstId}/billing`, { method: "PUT", token: admin, body: JSON.stringify({ discountPercent: 10, taxRate: 5, serviceChargeRate: 10, grandTotal: 1 }) });
+    assert(adjusted.status === 200 && adjusted.body.order.discountAmount === 85.1 && adjusted.body.order.grandTotal === 880.79, "server-calculated billing adjustments failed");
+    assert((await request(`/orders/${firstId}/billing`, { method: "PUT", token: admin, body: JSON.stringify({ discountPercent: -1, taxRate: 5, serviceChargeRate: 10 }) })).status === 400, "invalid billing rate accepted");
+    assert((await request(`/orders/${firstId}/payment`, { method: "PUT", token: admin, body: JSON.stringify({ amountPaid: 9999, paymentMethod: "upi" }) })).status === 400, "overpayment accepted");
+    const partial = await request(`/orders/${firstId}/payment`, { method: "PUT", token: admin, body: JSON.stringify({ amountPaid: 400.25, paymentMethod: "upi", paymentStatus: "paid" }) });
+    assert(partial.body.order.paymentStatus === "partially_paid" && partial.body.order.amountPaid === 400.25 && partial.body.order.remainingBalance === 480.54, "partial payment lifecycle failed");
+    const paid = await request(`/orders/${firstId}/payment`, { method: "PUT", token: admin, body: JSON.stringify({ amountPaid: 880.79, paymentMethod: "upi" }) });
+    assert(paid.body.order.paymentStatus === "paid" && paid.body.order.paymentMethod === "upi" && paid.body.order.paidAt, "full payment recording failed");
     const all = await request(`/reservations/${reservationId}/orders`, { token: admin });
-    assert(all.body.orders.length === 2 && all.body.billTotal === 1702, "itemized reservation total failed");
+    assert(all.body.orders.length === 2 && all.body.billTotal === 1731.79 && all.body.amountPaid === 880.79 && all.body.remainingBalance === 851, "itemized reservation totals failed");
     const reservations = await request("/reservations", { token: admin });
-    assert(reservations.body.reservations.find(row => row.id === reservationId).billAmount === 1702, "legacy bill total sync failed");
+    assert(reservations.body.reservations.find(row => row.id === reservationId).billAmount === 1731.79, "legacy bill total sync failed");
 
     console.log("Day 18 order/KOT/payment API smoke tests: PASS");
     process.exit(0);

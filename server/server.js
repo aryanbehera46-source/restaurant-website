@@ -277,7 +277,11 @@ db.exec(`
         status TEXT NOT NULL DEFAULT 'draft' CHECK(status IN ('draft', 'new', 'accepted', 'preparing', 'ready', 'served', 'cancelled')),
         notes TEXT,
         subtotal REAL NOT NULL DEFAULT 0 CHECK(subtotal >= 0),
-        paymentStatus TEXT NOT NULL DEFAULT 'unpaid' CHECK(paymentStatus IN ('unpaid', 'paid', 'refunded')),
+        discountPercent REAL NOT NULL DEFAULT 0 CHECK(discountPercent BETWEEN 0 AND 100),
+        taxRate REAL NOT NULL DEFAULT 0 CHECK(taxRate BETWEEN 0 AND 100),
+        serviceChargeRate REAL NOT NULL DEFAULT 0 CHECK(serviceChargeRate BETWEEN 0 AND 100),
+        amountPaid REAL NOT NULL DEFAULT 0 CHECK(amountPaid >= 0),
+        paymentStatus TEXT NOT NULL DEFAULT 'unpaid' CHECK(paymentStatus IN ('unpaid', 'partially_paid', 'paid', 'refunded')),
         paymentMethod TEXT CHECK(paymentMethod IS NULL OR paymentMethod IN ('cash', 'card', 'upi', 'other')),
         paidAt TEXT,
         createdByStaffId INTEGER REFERENCES staff_users(id) ON DELETE SET NULL,
@@ -306,6 +310,16 @@ db.exec(`
     CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items(orderId);
 
 `);
+
+const orderColumns = new Set(db.prepare("PRAGMA table_info(orders)").all().map(column => column.name));
+for (const [name, definition] of [
+    ["discountPercent", "REAL NOT NULL DEFAULT 0 CHECK(discountPercent BETWEEN 0 AND 100)"],
+    ["taxRate", "REAL NOT NULL DEFAULT 0 CHECK(taxRate BETWEEN 0 AND 100)"],
+    ["serviceChargeRate", "REAL NOT NULL DEFAULT 0 CHECK(serviceChargeRate BETWEEN 0 AND 100)"],
+    ["amountPaid", "REAL NOT NULL DEFAULT 0 CHECK(amountPaid >= 0)"]
+]) {
+    if (!orderColumns.has(name)) db.exec(`ALTER TABLE orders ADD COLUMN ${name} ${definition}`);
+}
 
 // ==================================================
 // EXPRESS SETTINGS
@@ -836,7 +850,27 @@ function orderWithItems(id) {
     `).get(id);
     if (!order) return null;
     order.items = db.prepare("SELECT id, menuItemId, itemName, unitPrice, quantity, notes, ROUND(unitPrice * quantity, 2) AS lineTotal FROM order_items WHERE orderId = ? ORDER BY id").all(id);
+    const bill = calculateOrderBill(order);
+    const recordedAmount = money(Math.min(Number(order.amountPaid) || 0, bill.grandTotal));
+    Object.assign(order, bill, {
+        amountPaid: recordedAmount,
+        remainingBalance: money(Math.max(0, bill.grandTotal - recordedAmount)),
+        paymentStatus: order.paymentStatus === "refunded" ? "refunded" : recordedAmount === 0 ? "unpaid" : recordedAmount === bill.grandTotal ? "paid" : "partially_paid"
+    });
     return order;
+}
+
+function money(value) {
+    return Math.round((Number(value) + Number.EPSILON) * 100) / 100;
+}
+
+function calculateOrderBill(order) {
+    const subtotal = money(order.subtotal);
+    const discountAmount = money(subtotal * Number(order.discountPercent || 0) / 100);
+    const taxableAmount = money(Math.max(0, subtotal - discountAmount));
+    const taxAmount = money(taxableAmount * Number(order.taxRate || 0) / 100);
+    const serviceChargeAmount = money(taxableAmount * Number(order.serviceChargeRate || 0) / 100);
+    return { discountAmount, taxableAmount, taxAmount, serviceChargeAmount, grandTotal: money(taxableAmount + taxAmount + serviceChargeAmount) };
 }
 
 function validateOrderItems(items) {
@@ -859,7 +893,7 @@ function validateOrderItems(items) {
 }
 
 function syncReservationBill(reservationId) {
-    const total = db.prepare("SELECT ROUND(COALESCE(SUM(subtotal), 0), 2) AS total FROM orders WHERE reservationId = ? AND status != 'cancelled'").get(reservationId).total;
+    const total = db.prepare("SELECT id FROM orders WHERE reservationId = ? AND status != 'cancelled'").all(reservationId).reduce((sum, row) => sum + orderWithItems(row.id).grandTotal, 0);
     db.prepare("UPDATE reservations SET billAmount = ?, updatedAt = CURRENT_TIMESTAMP WHERE id = ?").run(total, reservationId);
     return Number(total);
 }
@@ -1303,7 +1337,10 @@ app.get("/reservations/:id/orders", authenticateAdmin, (req, res) => {
     if (!Number.isInteger(reservationId) || reservationId < 1) return res.status(400).json({ success: false, message: "Invalid reservation ID." });
     if (!db.prepare("SELECT id FROM reservations WHERE id = ?").get(reservationId)) return res.status(404).json({ success: false, message: "Reservation not found." });
     const orders = db.prepare("SELECT id FROM orders WHERE reservationId = ? ORDER BY orderNumber").all(reservationId).map(row => orderWithItems(row.id));
-    res.json({ success: true, orders, billTotal: orders.filter(order => order.status !== "cancelled").reduce((sum, order) => sum + Number(order.subtotal), 0) });
+    const active = orders.filter(order => order.status !== "cancelled");
+    const billTotal = money(active.reduce((sum, order) => sum + order.grandTotal, 0));
+    const amountPaid = money(active.reduce((sum, order) => sum + order.amountPaid, 0));
+    res.json({ success: true, orders, billTotal, amountPaid, remainingBalance: money(Math.max(0, billTotal - amountPaid)) });
 });
 
 app.post("/reservations/:id/orders", authenticateAdmin, (req, res) => {
@@ -1331,6 +1368,8 @@ app.put("/orders/:id", authenticateAdmin, (req, res) => {
     if (!["draft", "new"].includes(existing.status)) return res.status(409).json({ success: false, message: "Only draft or new KOTs can be edited." });
     const checked = validateOrderItems(req.body?.items);
     if (checked.error) return res.status(400).json({ success: false, message: checked.error });
+    const revisedBill = calculateOrderBill({ ...existing, subtotal: checked.subtotal });
+    if (existing.amountPaid > revisedBill.grandTotal) return res.status(409).json({ success: false, message: "Order changes cannot reduce the total below the amount already paid." });
     db.transaction(() => {
         db.prepare("UPDATE orders SET notes = ?, subtotal = ?, updatedAt = CURRENT_TIMESTAMP WHERE id = ?").run(clean(req.body?.notes, 1000) || null, checked.subtotal, existing.id);
         db.prepare("DELETE FROM order_items WHERE orderId = ?").run(existing.id);
@@ -1360,12 +1399,30 @@ app.delete("/orders/:id", authenticateAdmin, (req, res) => {
 app.put("/orders/:id/payment", authenticateAdmin, (req, res) => {
     const order = orderWithItems(Number(req.params.id));
     if (!order) return res.status(404).json({ success: false, message: "Order not found." });
-    const paymentStatus = clean(req.body?.paymentStatus, 20);
     const paymentMethod = req.body?.paymentMethod == null ? null : clean(req.body.paymentMethod, 20);
-    if (!["unpaid", "paid", "refunded"].includes(paymentStatus)) return res.status(400).json({ success: false, message: "Invalid payment status." });
-    if (paymentStatus === "paid" && !["cash", "card", "upi", "other"].includes(paymentMethod)) return res.status(400).json({ success: false, message: "A valid payment method is required when marking an order paid." });
+    const amountPaid = money(req.body?.amountPaid);
+    if (!Number.isFinite(Number(req.body?.amountPaid)) || amountPaid < 0 || amountPaid > order.grandTotal) return res.status(400).json({ success: false, message: "Amount paid must be between zero and the server-calculated grand total." });
+    if (amountPaid > 0 && !["cash", "card", "upi", "other"].includes(paymentMethod)) return res.status(400).json({ success: false, message: "A valid payment method is required when recording payment." });
     if (paymentMethod !== null && !["cash", "card", "upi", "other"].includes(paymentMethod)) return res.status(400).json({ success: false, message: "Invalid payment method." });
-    db.prepare("UPDATE orders SET paymentStatus = ?, paymentMethod = ?, paidAt = CASE WHEN ? = 'paid' THEN COALESCE(paidAt, CURRENT_TIMESTAMP) ELSE NULL END, updatedAt = CURRENT_TIMESTAMP WHERE id = ?").run(paymentStatus, paymentStatus === "paid" ? paymentMethod : null, paymentStatus, order.id);
+    const paymentStatus = amountPaid === 0 ? "unpaid" : amountPaid === order.grandTotal ? "paid" : "partially_paid";
+    const storedStatus = paymentStatus === "partially_paid" ? "unpaid" : paymentStatus;
+    db.prepare("UPDATE orders SET amountPaid = ?, paymentStatus = ?, paymentMethod = ?, paidAt = CASE WHEN ? = 'paid' THEN COALESCE(paidAt, CURRENT_TIMESTAMP) ELSE NULL END, updatedAt = CURRENT_TIMESTAMP WHERE id = ?").run(amountPaid, storedStatus, amountPaid > 0 ? paymentMethod : null, paymentStatus, order.id);
+    res.json({ success: true, order: orderWithItems(order.id) });
+});
+
+app.put("/orders/:id/billing", authenticateAdmin, (req, res) => {
+    const order = orderWithItems(Number(req.params.id));
+    if (!order) return res.status(404).json({ success: false, message: "Order not found." });
+    const values = ["discountPercent", "taxRate", "serviceChargeRate"].map(field => Number(req.body?.[field]));
+    if (values.some(value => !Number.isFinite(value) || value < 0 || value > 100)) return res.status(400).json({ success: false, message: "Discount, tax, and service charge must each be between 0 and 100 percent." });
+    const preview = calculateOrderBill({ ...order, discountPercent: values[0], taxRate: values[1], serviceChargeRate: values[2] });
+    if (order.amountPaid > preview.grandTotal) return res.status(409).json({ success: false, message: "Billing adjustments cannot reduce the total below the amount already paid." });
+    const paymentStatus = order.amountPaid === 0 ? "unpaid" : order.amountPaid === preview.grandTotal ? "paid" : "partially_paid";
+    const storedStatus = paymentStatus === "partially_paid" ? "unpaid" : paymentStatus;
+    db.transaction(() => {
+        db.prepare("UPDATE orders SET discountPercent=?, taxRate=?, serviceChargeRate=?, paymentStatus=?, paidAt=CASE WHEN ?='paid' THEN COALESCE(paidAt,CURRENT_TIMESTAMP) ELSE NULL END, updatedAt=CURRENT_TIMESTAMP WHERE id=?").run(...values, storedStatus, paymentStatus, order.id);
+        syncReservationBill(order.reservationId);
+    })();
     res.json({ success: true, order: orderWithItems(order.id) });
 });
 
