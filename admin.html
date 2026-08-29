@@ -10,7 +10,7 @@
 >
 
 <title>Royal Table — Admin Dashboard</title>
-<link rel="stylesheet" href="ui.css?v=final-fix-20260829">
+<link rel="stylesheet" href="ui.css?v=day18-world-class-20260829">
 
 <style>
 
@@ -1773,6 +1773,20 @@ tr:hover{
         <div class="analytics-layout"><div class="analytics-panel"><h3>Top dishes</h3><div id="actualTopDishes"><p class="muted">No actual orders yet.</p></div></div><div class="analytics-panel"><h3>Payment position</h3><div id="actualPaymentPosition"><p class="muted">No actual orders yet.</p></div></div></div>
     </section>
 
+    <section class="ai-briefing" aria-labelledby="ai-briefing-title">
+        <div class="ai-briefing-heading">
+            <div>
+                <span class="ai-kicker">ROYAL TABLE INTELLIGENCE</span>
+                <h3 id="ai-briefing-title">AI Operations Briefing</h3>
+                <p>Server-grounded recommendations generated only from today’s reservations, live KOTs, menu, inventory, grocery and kitchen-task data.</p>
+            </div>
+            <button type="button" id="refreshAiBriefing" onclick="loadAiBriefing()">Generate briefing</button>
+        </div>
+        <div id="aiBriefingState" class="ai-briefing-state" role="status">Preparing today’s operational context…</div>
+        <ol id="aiBriefingRecommendations" class="ai-recommendations"></ol>
+        <p class="ai-safeguard">Read-only guidance. It cannot change reservations, prices, payments, inventory or staff access.</p>
+    </section>
+
     <!-- ==================================================
          ANALYTICS PANELS
     ================================================== -->
@@ -2890,6 +2904,8 @@ function showDashboard(){
 
     loadActualOrderAnalytics();
 
+    loadAiBriefing();
+
 }
 
 
@@ -2902,6 +2918,8 @@ function refreshDashboard(){
     loadOperations();
 
     loadActualOrderAnalytics();
+
+    loadAiBriefing();
 
     showToast(
         "Dashboard refreshed.",
@@ -3097,6 +3115,34 @@ async function loadActualOrderAnalytics(){
         document.getElementById("actualPaymentPosition").innerHTML=`<div class="analytics-row"><span>Billed</span><strong>${formatCurrency(a.billedRevenue)}</strong></div><div class="analytics-row"><span>Received</span><strong>${formatCurrency(a.paidRevenue)}</strong></div><div class="analytics-row"><span>Outstanding</span><strong>${formatCurrency(a.outstandingRevenue)}</strong></div>`;
         state.textContent=`Live actual-order data for ${date}; reservation forecasts remain separate.`;
     }catch(error){state.textContent=`Order analytics unavailable: ${error.message}`;}
+}
+
+async function loadAiBriefing(){
+    const state=document.getElementById("aiBriefingState");
+    const list=document.getElementById("aiBriefingRecommendations");
+    const button=document.getElementById("refreshAiBriefing");
+    if(!state||!list||!adminToken)return;
+    state.textContent="Analyzing today’s server-grounded operating data…";
+    list.innerHTML="";
+    if(button){button.disabled=true;button.textContent="Analyzing…";}
+    try{
+        const date=formatDateLocal(new Date());
+        const response=await fetch(`${API_URL}/ai/kitchen/briefing`,{
+            method:"POST",
+            headers:getAuthHeaders(),
+            body:JSON.stringify({date})
+        });
+        const data=await response.json();
+        if(response.status===401||response.status===403){logout();return;}
+        if(!response.ok||!data.success)throw new Error(data.message||"Unable to generate the AI briefing.");
+        const recommendations=data.assistant?.recommendations||[];
+        list.innerHTML=recommendations.map(item=>`<li>${escapeHtml(item)}</li>`).join("");
+        state.textContent=`Briefing ready for ${date} · ${recommendations.length} evidence-based recommendations`;
+    }catch(error){
+        state.textContent=`AI briefing unavailable: ${error.message}`;
+    }finally{
+        if(button){button.disabled=false;button.textContent="Regenerate briefing";}
+    }
 }
 
 async function loadReservations(){
@@ -6233,6 +6279,6 @@ if(
 
 </script>
 
-<script src="ui.js?v=final-fix-20260829"></script>
+<script src="ui.js?v=day18-world-class-20260829"></script>
 </body>
 </html>

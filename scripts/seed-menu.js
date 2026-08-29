@@ -1,4 +1,7 @@
-const API_URL = "https://royal-table-api.onrender.com";
+const API_URL = String(
+    process.env.ROYAL_TABLE_API_URL ||
+    "https://royal-table-api.onrender.com"
+).replace(/\/$/, "");
 
 const username = process.env.ROYAL_TABLE_ADMIN_USERNAME;
 const password = process.env.ROYAL_TABLE_ADMIN_PASSWORD;
@@ -352,12 +355,13 @@ async function request(path, options = {}) {
 
 async function main() {
     console.log("========================================");
-    console.log("ROYAL TABLE — PRODUCTION MENU IMPORT");
+    console.log("ROYAL TABLE — MENU IMPORT");
     console.log("========================================");
     console.log(`Prepared dishes: ${menu.length}`);
     console.log("");
 
-    console.log("Logging into production API...");
+    console.log(`Target API: ${API_URL}`);
+    console.log("Logging into menu API...");
 
     const login = await request("/admin/login", {
         method: "POST",
@@ -383,10 +387,10 @@ async function main() {
         process.exit(1);
     }
 
-    console.log("✓ Production authentication successful.");
+    console.log("✓ Authentication successful.");
     console.log("");
 
-    console.log("Checking existing production menu...");
+    console.log("Checking existing menu...");
 
     const existing = await request("/admin/menu", {
         headers: {
@@ -395,7 +399,7 @@ async function main() {
     });
 
     if (!existing.response.ok || !existing.data.success) {
-        console.error("Could not read existing production menu.");
+        console.error("Could not read existing menu.");
         console.error(
             existing.data.message || `HTTP ${existing.response.status}`
         );
@@ -412,7 +416,7 @@ async function main() {
         )
     );
 
-    console.log(`Existing production dishes: ${existingItems.length}`);
+    console.log(`Existing dishes: ${existingItems.length}`);
     console.log("");
 
     let added = 0;

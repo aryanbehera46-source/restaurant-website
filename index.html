@@ -20,7 +20,7 @@
         rel="stylesheet"
         href="style.css"
     >
-    <link rel="stylesheet" href="ui.css?v=final-fix-20260829">
+    <link rel="stylesheet" href="ui.css?v=day18-world-class-20260829">
 </head>
 
 <body>
@@ -247,6 +247,10 @@
             class="menu-categories"
             aria-label="Menu categories"
         ></div>
+
+        <p id="menuResults" class="menu-results" aria-live="polite">
+            Loading the complete menu…
+        </p>
 
 
         <!-- MENU LOADING -->
@@ -1125,6 +1129,9 @@
                 empty.style.display =
                     "block";
 
+                document.getElementById("menuResults").textContent =
+                    `No dishes available in ${selectedCategory}.`;
+
                 return;
 
             }
@@ -1132,6 +1139,9 @@
 
             empty.style.display =
                 "none";
+
+            document.getElementById("menuResults").textContent =
+                `${items.length} ${items.length === 1 ? "dish" : "dishes"} · ${selectedCategory === "all" ? "Complete menu" : selectedCategory}`;
 
 
             items.forEach(
@@ -2028,7 +2038,7 @@
 
     </script>
 
-<script src="ui.js?v=final-fix-20260829"></script>
+<script src="ui.js?v=day18-world-class-20260829"></script>
 </body>
 
 </html>
