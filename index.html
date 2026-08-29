@@ -18,9 +18,9 @@
 
     <link
         rel="stylesheet"
-        href="style.css?v=customer-editorial-20260829"
+        href="style.css?v=customer-clean-menu-20260829"
     >
-    <link rel="stylesheet" href="ui.css?v=customer-editorial-20260829">
+    <link rel="stylesheet" href="ui.css?v=customer-clean-menu-20260829">
 </head>
 
 <body>
@@ -91,10 +91,10 @@
             </p>
 
             <a
-                href="#reservation"
-                class="hero-button"
+                href="#full-menu"
+                class="hero-button hero-menu-button"
             >
-                Reserve a Table
+                Explore the Menu
             </a>
 
         </div>
@@ -263,7 +263,6 @@
                 <h3>Reservations</h3>
                 <p>Choose your preferred date, time and party size online.</p>
                 <p>For dietary needs or celebrations, add a note with your request.</p>
-                <a href="#reservation">Request a table</a>
             </article>
 
             <article class="contact-card">
@@ -271,7 +270,6 @@
                 <h3>Private Dining</h3>
                 <p>Host intimate celebrations and group dinners with a menu shaped for your table.</p>
                 <p>Share the occasion in your reservation note and our host will follow up.</p>
-                <a href="#reservation">Plan your occasion</a>
             </article>
         </div>
     </section>
@@ -314,7 +312,7 @@
         ></div>
 
         <p id="menuResults" class="menu-results" aria-live="polite">
-            Loading the complete menu…
+            Select a category to explore the menu.
         </p>
 
 
@@ -703,7 +701,7 @@
 
         let allMenuItems = [];
 
-        let selectedCategory = "all";
+        let selectedCategory = null;
 
 
         const localMenuImages = {
@@ -1004,49 +1002,6 @@
             container.innerHTML = "";
 
 
-            const allButton =
-                document.createElement(
-                    "button"
-                );
-
-
-            allButton.type =
-                "button";
-
-
-            allButton.className =
-                "menu-category active";
-
-
-            allButton.dataset.category =
-                "all";
-
-
-            allButton.textContent =
-                "All";
-
-
-            allButton.addEventListener(
-                "click",
-                () => {
-
-                    selectedCategory =
-                        "all";
-
-
-                    updateCategoryButtons();
-
-                    renderFullMenu();
-
-                }
-            );
-
-
-            container.appendChild(
-                allButton
-            );
-
-
             const categoryOrder = [
                 "Beverages",
                 "Breads",
@@ -1090,8 +1045,12 @@
                         category;
 
 
-                    button.textContent =
-                        category;
+                    const itemCount = allMenuItems.filter(
+                        item => Number(item.available) === 1 &&
+                            String(item.category || "").trim() === category
+                    ).length;
+
+                    button.innerHTML = `${escapeHtml(category)} <span>${itemCount}</span>`;
 
 
                     button.addEventListener(
@@ -1172,6 +1131,17 @@
 
             list.innerHTML = "";
 
+            if (!selectedCategory) {
+
+                empty.style.display = "none";
+
+                document.getElementById("menuResults").textContent =
+                    "Select a category to explore the menu.";
+
+                return;
+
+            }
+
 
             let items =
                 allMenuItems.filter(
@@ -1180,17 +1150,9 @@
                 );
 
 
-            if (
-                selectedCategory !== "all"
-            ) {
-
-                items =
-                    items.filter(
-                        item =>
-                            String(item.category || "").trim() === selectedCategory
-                    );
-
-            }
+            items = items.filter(
+                item => String(item.category || "").trim() === selectedCategory
+            );
 
 
             if (
@@ -1212,7 +1174,7 @@
                 "none";
 
             document.getElementById("menuResults").textContent =
-                `${items.length} ${items.length === 1 ? "dish" : "dishes"} · ${selectedCategory === "all" ? "Complete menu" : selectedCategory}`;
+                `${selectedCategory} · ${items.length} ${items.length === 1 ? "dish" : "dishes"}`;
 
 
             items.forEach(
@@ -2109,7 +2071,7 @@
 
     </script>
 
-<script src="ui.js?v=customer-editorial-20260829"></script>
+<script src="ui.js?v=customer-clean-menu-20260829"></script>
 </body>
 
 </html>
