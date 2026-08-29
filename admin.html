@@ -210,6 +210,98 @@ header p{
     color:#bbb;
 }
 
+.admin-nav{
+    display:flex;
+    gap:8px;
+    padding:12px 40px;
+    overflow-x:auto;
+    background:#1c1c1c;
+    border-top:1px solid #333;
+}
+
+.admin-nav a{
+    flex:0 0 auto;
+    color:#eee;
+    text-decoration:none;
+    padding:9px 13px;
+    border-radius:7px;
+    font-size:14px;
+    font-weight:700;
+}
+
+.admin-nav a:hover,
+.admin-nav a:focus{
+    color:#111;
+    background:#d4af37;
+}
+
+.operations-section{
+    margin:30px 0;
+    scroll-margin-top:150px;
+}
+
+.operations-heading{
+    display:flex;
+    justify-content:space-between;
+    align-items:end;
+    gap:20px;
+    margin-bottom:16px;
+}
+
+.operations-heading p{
+    color:#666;
+    margin-top:6px;
+}
+
+.operations-grid{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:15px;
+}
+
+.operations-card{
+    background:#fff;
+    border-radius:10px;
+    padding:22px;
+    box-shadow:0 3px 15px rgba(0,0,0,.08);
+    border-top:4px solid #d4af37;
+}
+
+.operations-card h3{
+    margin-bottom:8px;
+}
+
+.operations-card p{
+    color:#666;
+    line-height:1.5;
+}
+
+.operations-card .metric{
+    display:block;
+    margin:14px 0 4px;
+    font-size:28px;
+    font-weight:800;
+}
+
+.operations-link{
+    display:inline-block;
+    margin-top:14px;
+    color:#111;
+    font-weight:700;
+}
+
+.operations-status{
+    color:#777;
+    font-size:13px;
+}
+
+#reservations,
+#analytics,
+#menu,
+#operations{
+    scroll-margin-top:150px;
+}
+
 
 /* ==================================================
    CONTAINER
@@ -1168,7 +1260,8 @@ tr:hover{
 @media(max-width:1150px){
 
     .stats-grid,
-    .analytics-grid{
+    .analytics-grid,
+    .operations-grid{
 
         grid-template-columns:
             repeat(3,1fr);
@@ -1179,7 +1272,8 @@ tr:hover{
 @media(max-width:900px){
 
     .stats-grid,
-    .analytics-grid{
+    .analytics-grid,
+    .operations-grid{
 
         grid-template-columns:
             repeat(2,1fr);
@@ -1198,6 +1292,20 @@ tr:hover{
 }
 
 @media(max-width:600px){
+
+    .admin-nav{
+        margin:14px -20px -20px;
+        padding:10px 20px;
+    }
+
+    .operations-grid{
+        grid-template-columns:1fr;
+    }
+
+    .operations-heading{
+        align-items:flex-start;
+        flex-direction:column;
+    }
 
     header{
 
@@ -1376,6 +1484,17 @@ tr:hover{
         Restaurant Administration Dashboard
     </p>
 
+    <nav class="admin-nav" aria-label="Administration sections">
+        <a href="#reservations">Reservations</a>
+        <a href="#analytics">Analytics</a>
+        <a href="#menu">Menu</a>
+        <a href="staff.html">Staff</a>
+        <a href="#operations">Kitchen</a>
+        <a href="#inventoryCard">Inventory</a>
+        <a href="#groceryCard">Grocery</a>
+        <a href="chef.html" target="_blank" rel="noopener">Chef Portal</a>
+    </nav>
+
 </header>
 
 
@@ -1423,7 +1542,7 @@ tr:hover{
          RESERVATION STATS
     ================================================== -->
 
-    <div class="stats-grid">
+    <div class="stats-grid" id="reservations">
 
         <div class="stat-card">
 
@@ -1511,7 +1630,7 @@ tr:hover{
          REVENUE ANALYTICS
     ================================================== -->
 
-    <div class="analytics-grid">
+    <div class="analytics-grid" id="analytics">
 
         <div class="analytics-card">
 
@@ -1859,7 +1978,7 @@ tr:hover{
          MENU
     ================================================== -->
 
-    <section class="menu-section">
+    <section class="menu-section" id="menu">
 
 
         <div class="menu-heading">
@@ -1944,6 +2063,48 @@ tr:hover{
 
         </div>
 
+    </section>
+
+    <section class="operations-section" id="operations">
+        <div class="operations-heading">
+            <div>
+                <h2>Restaurant Operations</h2>
+                <p>Admin oversight for staff and kitchen operations. Chef access remains separate and role-restricted.</p>
+            </div>
+            <button type="button" onclick="loadOperations()">Refresh Operations</button>
+        </div>
+
+        <div class="operations-grid">
+            <article class="operations-card">
+                <h3>Staff</h3>
+                <p>Manage administrator and chef accounts, access status, and team credentials.</p>
+                <span class="metric" id="staffCount">—</span>
+                <span class="operations-status" id="staffStatus">Loading team…</span><br>
+                <a class="operations-link" href="staff.html">Open Staff Management →</a>
+            </article>
+
+            <article class="operations-card">
+                <h3>Kitchen</h3>
+                <p>Monitor today’s service workload, confirmed covers, preparation tasks, and AI briefing availability.</p>
+                <span class="metric" id="kitchenCovers">—</span>
+                <span class="operations-status" id="kitchenStatus">Loading service…</span><br>
+                <a class="operations-link" href="chef.html" target="_blank" rel="noopener">Open Separate Chef Portal →</a>
+            </article>
+
+            <article class="operations-card" id="inventoryCard">
+                <h3>Inventory</h3>
+                <p>Review active ingredients and low-stock warnings without entering the chef workspace.</p>
+                <span class="metric" id="inventoryCount">—</span>
+                <span class="operations-status" id="inventoryStatus">Loading inventory…</span>
+            </article>
+
+            <article class="operations-card" id="groceryCard">
+                <h3>Grocery</h3>
+                <p>Track pending purchase requirements, urgent shortfalls, and procurement progress.</p>
+                <span class="metric" id="groceryCount">—</span>
+                <span class="operations-status" id="groceryStatus">Loading grocery list…</span>
+            </article>
+        </div>
     </section>
 
 </div>
@@ -2437,6 +2598,59 @@ tr:hover{
 const API_URL =
     "https://royal-table-api.onrender.com";
 
+const localMenuImages = {
+    "Crispy Corn": "assets/menu/crispy-corn.png",
+    "Chicken Tikka": "assets/menu/chicken-tikka.png",
+    "Malai Chicken Tikka": "assets/menu/malai-chicken-tikka.png",
+    "Paneer Tikka": "assets/menu/paneer-tikka.png",
+    "Hara Bhara Kebab": "assets/menu/hara-bhara-kebab.png",
+    "Dahi Ke Kebab": "assets/menu/dahi-ke-kebab.png",
+    "Tandoori Prawns": "assets/menu/tandoori-prawns.png",
+    "Mutton Seekh Kebab": "assets/menu/mutton-seekh-kebab.png",
+    "Tandoori Chicken": "assets/menu/tandoori-chicken.png",
+    "Afghani Chicken": "assets/menu/afghani-chicken.png",
+    "Tandoori Fish": "assets/menu/tandoori-fish.png",
+    "Paneer Malai Tikka": "assets/menu/paneer-malai-tikka.png",
+    "Tandoori Mushroom": "assets/menu/tandoori-mushroom.png",
+    "Paneer Butter Masala": "assets/menu/paneer-butter-masala.png",
+    "Kadai Paneer": "assets/menu/kadai-paneer.png",
+    "Palak Paneer": "assets/menu/palak-paneer.png",
+    "Shahi Paneer": "assets/menu/shahi-paneer.png",
+    "Dal Makhani": "assets/menu/dal-makhani.png",
+    "Dal Tadka": "assets/menu/dal-tadka.png",
+    "Mix Vegetable Curry": "assets/menu/mix-vegetable-curry.png",
+    "Mushroom Masala": "assets/menu/mushroom-masala.png",
+    "Butter Chicken": "assets/menu/butter-chicken.png",
+    "Chicken Curry": "assets/menu/chicken-curry.png",
+    "Chicken Tikka Masala": "assets/menu/chicken-tikka-masala.png",
+    "Kadai Chicken": "assets/menu/kadai-chicken.png",
+    "Chicken Rara": "assets/menu/chicken-rara.png",
+    "Mutton Rogan Josh": "assets/menu/mutton-rogan-josh.png",
+    "Mutton Curry": "assets/menu/mutton-curry.png",
+    "Fish Curry": "assets/menu/fish-curry.png",
+    "Steamed Basmati Rice": "assets/menu/steamed-basmati-rice.png",
+    "Jeera Rice": "assets/menu/jeera-rice.png",
+    "Vegetable Biryani": "assets/menu/vegetable-biryani.png",
+    "Chicken Biryani": "assets/menu/chicken-biryani.png",
+    "Mutton Biryani": "assets/menu/mutton-biryani.png",
+    "Paneer Biryani": "assets/menu/paneer-biryani.png",
+    "Tandoori Roti": "assets/menu/tandoori-roti.png",
+    "Butter Naan": "assets/menu/butter-naan.png",
+    "Garlic Naan": "assets/menu/garlic-naan.png",
+    "Cheese Naan": "assets/menu/cheese-naan.png",
+    "Lachha Paratha": "assets/menu/lachha-paratha.png",
+    "Stuffed Paneer Kulcha": "assets/menu/stuffed-paneer-kulcha.png",
+    "Gulab Jamun": "assets/menu/gulab-jamun.png",
+    "Rasmalai": "assets/menu/rasmalai.png",
+    "Chocolate Brownie": "assets/menu/chocolate-brownie.png",
+    "Phirni": "assets/menu/phirni.png",
+    "Fresh Lime Soda": "assets/menu/fresh-lime-soda.png",
+    "Masala Chai": "assets/menu/masala-chai.png",
+    "Fresh Mango Lassi": "assets/menu/fresh-mango-lassi.png",
+    "Sweet Lassi": "assets/menu/sweet-lassi.png",
+    "Fresh Watermelon Cooler": "assets/menu/fresh-watermelon-cooler.png"
+};
+
 
 let adminToken =
     localStorage.getItem(
@@ -2595,6 +2809,8 @@ function showDashboard(){
 
     loadMenu();
 
+    loadOperations();
+
 }
 
 
@@ -2603,6 +2819,8 @@ function refreshDashboard(){
     loadReservations();
 
     loadMenu();
+
+    loadOperations();
 
     showToast(
         "Dashboard refreshed.",
@@ -2666,6 +2884,94 @@ function getAuthHeaders(){
             "application/json"
 
     };
+
+}
+
+
+/* ==================================================
+   OPERATIONAL OVERSIGHT
+================================================== */
+
+async function loadOperations(){
+
+    const today =
+        new Date()
+        .toISOString()
+        .slice(0,10);
+
+    try{
+
+        const [staffResponse, kitchenResponse, inventoryResponse, groceryResponse] =
+            await Promise.all([
+                fetch(`${API_URL}/staff`, { headers:getAuthHeaders() }),
+                fetch(`${API_URL}/chef/dashboard?date=${encodeURIComponent(today)}`, { headers:getAuthHeaders() }),
+                fetch(`${API_URL}/ingredients`, { headers:getAuthHeaders() }),
+                fetch(`${API_URL}/grocery`, { headers:getAuthHeaders() })
+            ]);
+
+        if([
+            staffResponse,
+            kitchenResponse,
+            inventoryResponse,
+            groceryResponse
+        ].some(response => !response.ok)){
+            throw new Error("Operational data is unavailable.");
+        }
+
+        const [staffData, kitchenData, inventoryData, groceryData] =
+            await Promise.all([
+                staffResponse.json(),
+                kitchenResponse.json(),
+                inventoryResponse.json(),
+                groceryResponse.json()
+            ]);
+
+        const activeStaff =
+            staffData.staff.filter(member => Number(member.active) === 1);
+
+        const lowStock =
+            inventoryData.ingredients.filter(item => Number(item.lowStock) === 1);
+
+        const pendingGrocery =
+            groceryData.grocery.filter(item => item.status === "pending");
+
+        const urgentGrocery =
+            pendingGrocery.filter(item => item.priority === "urgent");
+
+        document.getElementById("staffCount").textContent = activeStaff.length;
+        document.getElementById("staffStatus").textContent =
+            `${staffData.staff.length} total account${staffData.staff.length === 1 ? "" : "s"}; ${activeStaff.length} active`;
+
+        document.getElementById("kitchenCovers").textContent =
+            kitchenData.dashboard.confirmedGuests;
+        document.getElementById("kitchenStatus").textContent =
+            `confirmed covers today; ${kitchenData.dashboard.tasks.length} pending task${kitchenData.dashboard.tasks.length === 1 ? "" : "s"}`;
+
+        document.getElementById("inventoryCount").textContent =
+            inventoryData.ingredients.length;
+        document.getElementById("inventoryStatus").textContent =
+            `${lowStock.length} low-stock warning${lowStock.length === 1 ? "" : "s"}`;
+
+        document.getElementById("groceryCount").textContent =
+            pendingGrocery.length;
+        document.getElementById("groceryStatus").textContent =
+            `${urgentGrocery.length} urgent purchase requirement${urgentGrocery.length === 1 ? "" : "s"}`;
+
+    }catch(error){
+
+        [
+            "staffStatus",
+            "kitchenStatus",
+            "inventoryStatus",
+            "groceryStatus"
+        ].forEach(id => {
+            document.getElementById(id).textContent =
+                "Unable to load. Refresh or sign in again.";
+        });
+
+        console.error("Operational overview error:", error);
+
+    }
 
 }
 
@@ -4496,14 +4802,20 @@ async function loadMenu(){
                     ) === 1;
 
 
+                const imageSource =
+                    item.image && String(item.image).trim()
+                    ? item.image
+                    : localMenuImages[item.name];
+
+
                 const image =
-                    item.image
+                    imageSource
                     ?
                     `
 
                         <img
                             src="${escapeAttribute(
-                                item.image
+                                imageSource
                             )}"
                             alt="${escapeAttribute(
                                 item.name
