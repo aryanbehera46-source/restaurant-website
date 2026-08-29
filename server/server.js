@@ -270,10 +270,40 @@ db.exec(`
         PRIMARY KEY(menuItemId, ingredientId)
     );
 
+    CREATE TABLE IF NOT EXISTS orders (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        reservationId INTEGER NOT NULL REFERENCES reservations(id) ON DELETE CASCADE,
+        orderNumber INTEGER NOT NULL,
+        status TEXT NOT NULL DEFAULT 'draft' CHECK(status IN ('draft', 'new', 'accepted', 'preparing', 'ready', 'served', 'cancelled')),
+        notes TEXT,
+        subtotal REAL NOT NULL DEFAULT 0 CHECK(subtotal >= 0),
+        paymentStatus TEXT NOT NULL DEFAULT 'unpaid' CHECK(paymentStatus IN ('unpaid', 'paid', 'refunded')),
+        paymentMethod TEXT CHECK(paymentMethod IS NULL OR paymentMethod IN ('cash', 'card', 'upi', 'other')),
+        paidAt TEXT,
+        createdByStaffId INTEGER REFERENCES staff_users(id) ON DELETE SET NULL,
+        createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(reservationId, orderNumber)
+    );
+
+    CREATE TABLE IF NOT EXISTS order_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        orderId INTEGER NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+        menuItemId INTEGER NOT NULL REFERENCES menu_items(id) ON DELETE RESTRICT,
+        itemName TEXT NOT NULL,
+        unitPrice REAL NOT NULL CHECK(unitPrice >= 0),
+        quantity INTEGER NOT NULL CHECK(quantity BETWEEN 1 AND 99),
+        notes TEXT,
+        createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE INDEX IF NOT EXISTS idx_staff_username ON staff_users(username);
     CREATE INDEX IF NOT EXISTS idx_ingredients_active ON ingredients(active);
     CREATE INDEX IF NOT EXISTS idx_grocery_status ON grocery_items(status);
     CREATE INDEX IF NOT EXISTS idx_kitchen_tasks_date ON kitchen_tasks(serviceDate);
+    CREATE INDEX IF NOT EXISTS idx_orders_reservation ON orders(reservationId, orderNumber);
+    CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
+    CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items(orderId);
 
 `);
 
@@ -798,6 +828,42 @@ function validQuantity(value) {
     return Number.isFinite(Number(value)) && Number(value) >= 0;
 }
 
+function orderWithItems(id) {
+    const order = db.prepare(`
+        SELECT o.*, r.name AS guestName, r.date, r.time, r.guests
+        FROM orders o JOIN reservations r ON r.id = o.reservationId
+        WHERE o.id = ?
+    `).get(id);
+    if (!order) return null;
+    order.items = db.prepare("SELECT id, menuItemId, itemName, unitPrice, quantity, notes, ROUND(unitPrice * quantity, 2) AS lineTotal FROM order_items WHERE orderId = ? ORDER BY id").all(id);
+    return order;
+}
+
+function validateOrderItems(items) {
+    if (!Array.isArray(items) || items.length < 1 || items.length > 50) {
+        return { error: "An order must contain between 1 and 50 items." };
+    }
+    const menuLookup = db.prepare("SELECT id, name, price, available FROM menu_items WHERE id = ?");
+    const normalized = [];
+    for (const raw of items) {
+        const menuItemId = Number(raw?.menuItemId);
+        const quantity = Number(raw?.quantity);
+        const menuItem = Number.isInteger(menuItemId) ? menuLookup.get(menuItemId) : null;
+        if (!menuItem || !menuItem.available) return { error: "Every item must reference an available menu item." };
+        if (!Number.isInteger(quantity) || quantity < 1 || quantity > 99) return { error: "Item quantities must be whole numbers between 1 and 99." };
+        const price = Number(menuItem.price);
+        if (!Number.isFinite(price) || price < 0) return { error: "A menu item has an invalid server price." };
+        normalized.push({ menuItemId, itemName: menuItem.name, unitPrice: Math.round(price * 100) / 100, quantity, notes: clean(raw?.notes, 300) || null });
+    }
+    return { items: normalized, subtotal: Math.round(normalized.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0) * 100) / 100 };
+}
+
+function syncReservationBill(reservationId) {
+    const total = db.prepare("SELECT ROUND(COALESCE(SUM(subtotal), 0), 2) AS total FROM orders WHERE reservationId = ? AND status != 'cancelled'").get(reservationId).total;
+    db.prepare("UPDATE reservations SET billAmount = ?, updatedAt = CURRENT_TIMESTAMP WHERE id = ?").run(total, reservationId);
+    return Number(total);
+}
+
 // ==================================================
 // EMAIL CONFIGURATION
 // ==================================================
@@ -1228,6 +1294,98 @@ app.delete("/grocery/:id", staffOrAdmin, requireRole("admin", "chef"), (req, res
     res.json({ success: true, message: "Grocery item removed." });
 });
 
+// ==================================================
+// DAY 18: ITEMIZED ORDERS, KOTS, AND PAYMENTS
+// ==================================================
+
+app.get("/reservations/:id/orders", authenticateAdmin, (req, res) => {
+    const reservationId = Number(req.params.id);
+    if (!Number.isInteger(reservationId) || reservationId < 1) return res.status(400).json({ success: false, message: "Invalid reservation ID." });
+    if (!db.prepare("SELECT id FROM reservations WHERE id = ?").get(reservationId)) return res.status(404).json({ success: false, message: "Reservation not found." });
+    const orders = db.prepare("SELECT id FROM orders WHERE reservationId = ? ORDER BY orderNumber").all(reservationId).map(row => orderWithItems(row.id));
+    res.json({ success: true, orders, billTotal: orders.filter(order => order.status !== "cancelled").reduce((sum, order) => sum + Number(order.subtotal), 0) });
+});
+
+app.post("/reservations/:id/orders", authenticateAdmin, (req, res) => {
+    const reservationId = Number(req.params.id);
+    const reservation = Number.isInteger(reservationId) ? db.prepare("SELECT id, status FROM reservations WHERE id = ?").get(reservationId) : null;
+    if (!reservation) return res.status(404).json({ success: false, message: "Reservation not found." });
+    if (reservation.status === "Cancelled") return res.status(409).json({ success: false, message: "Orders cannot be added to a cancelled reservation." });
+    const checked = validateOrderItems(req.body?.items);
+    if (checked.error) return res.status(400).json({ success: false, message: checked.error });
+    const notes = clean(req.body?.notes, 1000) || null;
+    let orderId;
+    db.transaction(() => {
+        const next = db.prepare("SELECT COALESCE(MAX(orderNumber), 0) + 1 AS next FROM orders WHERE reservationId = ?").get(reservationId).next;
+        orderId = Number(db.prepare("INSERT INTO orders (reservationId, orderNumber, notes, subtotal) VALUES (?, ?, ?, ?)").run(reservationId, next, notes, checked.subtotal).lastInsertRowid);
+        const insert = db.prepare("INSERT INTO order_items (orderId, menuItemId, itemName, unitPrice, quantity, notes) VALUES (?, ?, ?, ?, ?, ?)");
+        for (const item of checked.items) insert.run(orderId, item.menuItemId, item.itemName, item.unitPrice, item.quantity, item.notes);
+        syncReservationBill(reservationId);
+    })();
+    res.status(201).json({ success: true, order: orderWithItems(orderId) });
+});
+
+app.put("/orders/:id", authenticateAdmin, (req, res) => {
+    const existing = orderWithItems(Number(req.params.id));
+    if (!existing) return res.status(404).json({ success: false, message: "Order not found." });
+    if (!["draft", "new"].includes(existing.status)) return res.status(409).json({ success: false, message: "Only draft or new KOTs can be edited." });
+    const checked = validateOrderItems(req.body?.items);
+    if (checked.error) return res.status(400).json({ success: false, message: checked.error });
+    db.transaction(() => {
+        db.prepare("UPDATE orders SET notes = ?, subtotal = ?, updatedAt = CURRENT_TIMESTAMP WHERE id = ?").run(clean(req.body?.notes, 1000) || null, checked.subtotal, existing.id);
+        db.prepare("DELETE FROM order_items WHERE orderId = ?").run(existing.id);
+        const insert = db.prepare("INSERT INTO order_items (orderId, menuItemId, itemName, unitPrice, quantity, notes) VALUES (?, ?, ?, ?, ?, ?)");
+        for (const item of checked.items) insert.run(existing.id, item.menuItemId, item.itemName, item.unitPrice, item.quantity, item.notes);
+        syncReservationBill(existing.reservationId);
+    })();
+    res.json({ success: true, order: orderWithItems(existing.id) });
+});
+
+app.post("/orders/:id/submit", authenticateAdmin, (req, res) => {
+    const order = orderWithItems(Number(req.params.id));
+    if (!order) return res.status(404).json({ success: false, message: "Order not found." });
+    if (order.status !== "draft") return res.status(409).json({ success: false, message: "Only a draft order can be sent to the kitchen." });
+    db.prepare("UPDATE orders SET status = 'new', updatedAt = CURRENT_TIMESTAMP WHERE id = ?").run(order.id);
+    res.json({ success: true, order: orderWithItems(order.id) });
+});
+
+app.delete("/orders/:id", authenticateAdmin, (req, res) => {
+    const order = orderWithItems(Number(req.params.id));
+    if (!order) return res.status(404).json({ success: false, message: "Order not found." });
+    if (order.status !== "draft") return res.status(409).json({ success: false, message: "Only draft orders can be deleted." });
+    db.transaction(() => { db.prepare("DELETE FROM orders WHERE id = ?").run(order.id); syncReservationBill(order.reservationId); })();
+    res.json({ success: true, message: "Draft order deleted." });
+});
+
+app.put("/orders/:id/payment", authenticateAdmin, (req, res) => {
+    const order = orderWithItems(Number(req.params.id));
+    if (!order) return res.status(404).json({ success: false, message: "Order not found." });
+    const paymentStatus = clean(req.body?.paymentStatus, 20);
+    const paymentMethod = req.body?.paymentMethod == null ? null : clean(req.body.paymentMethod, 20);
+    if (!["unpaid", "paid", "refunded"].includes(paymentStatus)) return res.status(400).json({ success: false, message: "Invalid payment status." });
+    if (paymentStatus === "paid" && !["cash", "card", "upi", "other"].includes(paymentMethod)) return res.status(400).json({ success: false, message: "A valid payment method is required when marking an order paid." });
+    if (paymentMethod !== null && !["cash", "card", "upi", "other"].includes(paymentMethod)) return res.status(400).json({ success: false, message: "Invalid payment method." });
+    db.prepare("UPDATE orders SET paymentStatus = ?, paymentMethod = ?, paidAt = CASE WHEN ? = 'paid' THEN COALESCE(paidAt, CURRENT_TIMESTAMP) ELSE NULL END, updatedAt = CURRENT_TIMESTAMP WHERE id = ?").run(paymentStatus, paymentStatus === "paid" ? paymentMethod : null, paymentStatus, order.id);
+    res.json({ success: true, order: orderWithItems(order.id) });
+});
+
+app.get("/kitchen/orders", staffOrAdmin, requireRole("admin", "chef"), (req, res) => {
+    const date = clean(req.query?.date || todayString(), 10);
+    if (!isValidDate(date)) return res.status(400).json({ success: false, message: "Use a valid date." });
+    const orders = db.prepare("SELECT o.id FROM orders o JOIN reservations r ON r.id = o.reservationId WHERE r.date = ? AND o.status != 'draft' AND o.status != 'cancelled' ORDER BY r.time, o.createdAt").all(date).map(row => orderWithItems(row.id));
+    res.json({ success: true, orders });
+});
+
+app.put("/kitchen/orders/:id/status", staffOrAdmin, requireRole("admin", "chef"), (req, res) => {
+    const order = orderWithItems(Number(req.params.id));
+    if (!order) return res.status(404).json({ success: false, message: "KOT not found." });
+    const status = clean(req.body?.status, 20);
+    const next = { new: "accepted", accepted: "preparing", preparing: "ready", ready: "served" };
+    if (next[order.status] !== status) return res.status(409).json({ success: false, message: `KOT ${order.status} can only move to ${next[order.status] || "no further status"}.` });
+    db.prepare("UPDATE orders SET status = ?, updatedAt = CURRENT_TIMESTAMP WHERE id = ?").run(status, order.id);
+    res.json({ success: true, order: orderWithItems(order.id) });
+});
+
 function kitchenBriefing(date) {
     const reservations = db.prepare(`SELECT id, time, guests, name, specialRequest, status FROM reservations WHERE date = ? AND LOWER(status) != 'cancelled' ORDER BY time`).all(date);
     const confirmed = reservations.filter(r => ["confirmed", "completed"].includes(String(r.status).toLowerCase()));
@@ -1235,7 +1393,8 @@ function kitchenBriefing(date) {
     const lowStock = db.prepare("SELECT id, name, category, unit, currentQuantity, minimumQuantity FROM ingredients WHERE active=1 AND currentQuantity <= minimumQuantity ORDER BY name").all();
     const grocery = db.prepare("SELECT *, MAX(requiredQuantity-currentQuantity,0) AS shortfall FROM grocery_items WHERE status='pending' ORDER BY CASE priority WHEN 'urgent' THEN 0 WHEN 'normal' THEN 1 ELSE 2 END").all();
     const tasks = db.prepare("SELECT * FROM kitchen_tasks WHERE serviceDate=? AND status='pending' ORDER BY createdAt").all(date);
-    return { date, reservations, confirmedGuests: confirmed.reduce((sum, r) => sum + Number(r.guests), 0), totalGuests: reservations.reduce((sum, r) => sum + Number(r.guests), 0), byTime, lowStock, grocery, tasks, activeMenuItems: db.prepare("SELECT id, name, category FROM menu_items WHERE available=1 ORDER BY category, name").all() };
+    const kots = db.prepare("SELECT o.id, o.status, o.subtotal FROM orders o JOIN reservations r ON r.id=o.reservationId WHERE r.date=? AND o.status NOT IN ('draft','cancelled')").all(date);
+    return { date, reservations, confirmedGuests: confirmed.reduce((sum, r) => sum + Number(r.guests), 0), totalGuests: reservations.reduce((sum, r) => sum + Number(r.guests), 0), byTime, lowStock, grocery, tasks, kots, activeMenuItems: db.prepare("SELECT id, name, category FROM menu_items WHERE available=1 ORDER BY category, name").all() };
 }
 
 app.get("/chef/dashboard", staffOrAdmin, requireRole("admin", "chef"), (req, res) => {
@@ -2802,6 +2961,14 @@ app.put(
                 Math.round(
                     amount * 100
                 ) / 100;
+
+            const itemizedOrders = db.prepare("SELECT COUNT(*) AS count FROM orders WHERE reservationId = ?").get(id).count;
+            if (itemizedOrders > 0) {
+                return res.status(409).json({
+                    success: false,
+                    message: "This reservation has itemized orders. Its bill is calculated from server-priced order items."
+                });
+            }
 
 
             const result =

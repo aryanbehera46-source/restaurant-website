@@ -1407,6 +1407,9 @@ tr:hover{
 }
 
 </style>
+<style>
+.order-workspace{display:grid;gap:14px}.order-builder,.order-card{border:1px solid #d7a64a55;border-radius:10px;padding:14px;background:#fffaf4}.order-builder-row{display:grid;grid-template-columns:minmax(180px,2fr) 90px minmax(160px,1fr) auto;gap:8px}.order-line{display:grid;grid-template-columns:1fr auto auto;gap:10px;padding:8px 0;border-bottom:1px solid #eadfce}.order-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.order-status{text-transform:uppercase;font-size:12px;font-weight:800;color:#8a5d10}.order-total{font-size:18px;font-weight:800;text-align:right}@media(max-width:700px){.order-builder-row{grid-template-columns:1fr}.order-line{grid-template-columns:1fr}}
+</style>
 
 </head>
 
@@ -2342,6 +2345,24 @@ tr:hover{
 
                 </div>
 
+                <div class="detail-item full-width">
+                    <span class="detail-label">Itemized Orders &amp; KOTs</span>
+                    <div class="order-workspace">
+                        <div class="order-builder">
+                            <div class="order-builder-row">
+                                <select id="orderMenuItem"></select>
+                                <input id="orderQuantity" type="number" min="1" max="99" value="1" aria-label="Quantity">
+                                <input id="orderItemNotes" maxlength="300" placeholder="Item note (optional)">
+                                <button type="button" onclick="addOrderLine()">Add item</button>
+                            </div>
+                            <div id="orderDraftLines"></div>
+                            <textarea id="orderNotes" maxlength="1000" placeholder="Kitchen instructions (optional)" style="width:100%;margin-top:10px"></textarea>
+                            <div class="order-actions"><button type="button" onclick="saveOrderDraft()">Create order</button></div>
+                        </div>
+                        <div id="reservationOrders">Loading orders…</div>
+                    </div>
+                </div>
+
 
                 <div class="detail-item full-width">
 
@@ -2695,6 +2716,10 @@ let currentMenuItemId = null;
 let allReservations = [];
 
 let allMenuItems = [];
+
+let orderDraftItems = [];
+
+let editingOrderId = null;
 
 let previousReservationCount = null;
 
@@ -4315,8 +4340,83 @@ function showReservationDetails(
         "show"
     );
 
+    orderDraftItems = [];
+    renderOrderDraft();
+    loadReservationOrders().catch(error => showToast(error.message, "error"));
+
 }
 
+
+/* ==================================================
+   DAY 18 ORDERS AND KOTS
+================================================== */
+
+function refreshOrderMenuSelect(){
+    const select = document.getElementById("orderMenuItem");
+    const available = allMenuItems.filter(item => Number(item.available) === 1);
+    select.innerHTML = available.map(item => `<option value="${item.id}">${escapeHtml(item.name)} — ${formatCurrency(item.price)}</option>`).join("");
+}
+
+function addOrderLine(){
+    const menuItemId = Number(document.getElementById("orderMenuItem").value);
+    const quantity = Number(document.getElementById("orderQuantity").value);
+    const item = allMenuItems.find(entry => Number(entry.id) === menuItemId && Number(entry.available) === 1);
+    if(!item || !Number.isInteger(quantity) || quantity < 1 || quantity > 99){ showToast("Choose an available item and quantity from 1 to 99.", "error"); return; }
+    orderDraftItems.push({ menuItemId, name:item.name, price:Number(item.price), quantity, notes:document.getElementById("orderItemNotes").value.trim() });
+    document.getElementById("orderQuantity").value = 1;
+    document.getElementById("orderItemNotes").value = "";
+    renderOrderDraft();
+}
+
+function removeOrderLine(index){ orderDraftItems.splice(index, 1); renderOrderDraft(); }
+
+function renderOrderDraft(){
+    refreshOrderMenuSelect();
+    const total = orderDraftItems.reduce((sum,item) => sum + item.price * item.quantity, 0);
+    document.getElementById("orderDraftLines").innerHTML = orderDraftItems.length ? orderDraftItems.map((item,index) => `<div class="order-line"><span><strong>${escapeHtml(item.name)}</strong>${item.notes ? `<br><small>${escapeHtml(item.notes)}</small>` : ""}</span><span>${item.quantity} × ${formatCurrency(item.price)}</span><button type="button" onclick="removeOrderLine(${index})">Remove</button></div>`).join("") + `<div class="order-total">Draft subtotal ${formatCurrency(total)}</div>` : `<p>No items in this order yet.</p>`;
+    document.querySelector(".order-builder .order-actions button").textContent = editingOrderId ? "Save order changes" : "Create order";
+}
+
+async function orderApi(path, options={}){
+    const response = await fetch(`${API_URL}${path}`, {...options, headers:getAuthHeaders()});
+    const data = await response.json();
+    if(response.status === 401 || response.status === 403){ logout(); throw new Error("Authentication required."); }
+    if(!response.ok) throw new Error(data.message || "Order request failed.");
+    return data;
+}
+
+async function saveOrderDraft(){
+    if(!orderDraftItems.length){ showToast("Add at least one menu item.", "error"); return; }
+    const body = JSON.stringify({ items:orderDraftItems.map(({menuItemId,quantity,notes}) => ({menuItemId,quantity,notes})), notes:document.getElementById("orderNotes").value.trim() });
+    const path = editingOrderId ? `/orders/${editingOrderId}` : `/reservations/${currentReservationId}/orders`;
+    await orderApi(path, {method:editingOrderId ? "PUT" : "POST", body});
+    orderDraftItems=[]; editingOrderId=null; document.getElementById("orderNotes").value=""; renderOrderDraft();
+    await loadReservationOrders(); await loadReservations(); showToast("Itemized order saved.", "success");
+}
+
+function editOrder(id){
+    const order = window.currentReservationOrders.find(entry => entry.id === id);
+    if(!order) return;
+    editingOrderId=id; orderDraftItems=order.items.map(item => ({menuItemId:item.menuItemId,name:item.itemName,price:Number(item.unitPrice),quantity:item.quantity,notes:item.notes||""}));
+    document.getElementById("orderNotes").value=order.notes||""; renderOrderDraft();
+}
+
+async function submitOrder(id){ await orderApi(`/orders/${id}/submit`,{method:"POST",body:"{}"}); await loadReservationOrders(); showToast("KOT sent to Chef Portal.","success"); }
+
+async function updatePayment(id){
+    const method=document.getElementById(`payment-${id}`).value;
+    await orderApi(`/orders/${id}/payment`,{method:"PUT",body:JSON.stringify(method ? {paymentStatus:"paid",paymentMethod:method} : {paymentStatus:"unpaid",paymentMethod:null})});
+    await loadReservationOrders(); showToast(method ? "Payment recorded." : "Payment marked unpaid.","success");
+}
+
+async function loadReservationOrders(){
+    if(!currentReservationId) return;
+    refreshOrderMenuSelect();
+    const data=await orderApi(`/reservations/${currentReservationId}/orders`);
+    window.currentReservationOrders=data.orders;
+    const target=document.getElementById("reservationOrders");
+    target.innerHTML=data.orders.length ? data.orders.map(order => `<section class="order-card"><div><strong>Order ${order.orderNumber} / KOT ${order.id}</strong> <span class="order-status">${escapeHtml(order.status)}</span></div>${order.items.map(item=>`<div class="order-line"><span>${escapeHtml(item.itemName)}${item.notes?`<br><small>${escapeHtml(item.notes)}</small>`:""}</span><span>${item.quantity} × ${formatCurrency(item.unitPrice)}</span><span>${formatCurrency(item.lineTotal)}</span></div>`).join("")}<div class="order-total">${formatCurrency(order.subtotal)}</div>${order.notes?`<p><strong>Kitchen:</strong> ${escapeHtml(order.notes)}</p>`:""}<div class="order-actions">${["draft","new"].includes(order.status)?`<button type="button" onclick="editOrder(${order.id})">Edit</button>`:""}${order.status==="draft"?`<button type="button" onclick="submitOrder(${order.id})">Send KOT</button>`:""}<select id="payment-${order.id}"><option value="">Unpaid</option><option value="cash" ${order.paymentMethod==="cash"?"selected":""}>Paid cash</option><option value="card" ${order.paymentMethod==="card"?"selected":""}>Paid card</option><option value="upi" ${order.paymentMethod==="upi"?"selected":""}>Paid UPI</option><option value="other" ${order.paymentMethod==="other"?"selected":""}>Paid other</option></select><button type="button" onclick="updatePayment(${order.id})">Save payment</button></div></section>`).join("") + `<div class="order-total">Reservation total ${formatCurrency(data.billTotal)}</div>` : "<p>No itemized orders yet.</p>";
+}
 
 /* ==================================================
    SAVE BILL
