@@ -1451,8 +1451,33 @@ function kitchenBriefing(date) {
     const grocery = db.prepare("SELECT *, MAX(requiredQuantity-currentQuantity,0) AS shortfall FROM grocery_items WHERE status='pending' ORDER BY CASE priority WHEN 'urgent' THEN 0 WHEN 'normal' THEN 1 ELSE 2 END").all();
     const tasks = db.prepare("SELECT * FROM kitchen_tasks WHERE serviceDate=? AND status='pending' ORDER BY createdAt").all(date);
     const kots = db.prepare("SELECT o.id, o.status, o.subtotal FROM orders o JOIN reservations r ON r.id=o.reservationId WHERE r.date=? AND o.status NOT IN ('draft','cancelled')").all(date);
-    return { date, reservations, confirmedGuests: confirmed.reduce((sum, r) => sum + Number(r.guests), 0), totalGuests: reservations.reduce((sum, r) => sum + Number(r.guests), 0), byTime, lowStock, grocery, tasks, kots, activeMenuItems: db.prepare("SELECT id, name, category FROM menu_items WHERE available=1 ORDER BY category, name").all() };
+    const kotStatusCounts = { new: 0, accepted: 0, preparing: 0, ready: 0, served: 0 };
+    for (const kot of kots) if (Object.prototype.hasOwnProperty.call(kotStatusCounts, kot.status)) kotStatusCounts[kot.status]++;
+    const dishQuantities = db.prepare(`
+        SELECT oi.itemName AS name, SUM(oi.quantity) AS quantity
+        FROM order_items oi
+        JOIN orders o ON o.id=oi.orderId
+        JOIN reservations r ON r.id=o.reservationId
+        WHERE r.date=? AND o.status NOT IN ('draft','cancelled')
+        GROUP BY oi.itemName ORDER BY quantity DESC, oi.itemName LIMIT 12
+    `).all(date).map(row => ({ ...row, quantity: Number(row.quantity) }));
+    return { date, reservations, confirmedGuests: confirmed.reduce((sum, r) => sum + Number(r.guests), 0), totalGuests: reservations.reduce((sum, r) => sum + Number(r.guests), 0), actualOrders: kots.length, reservationsWithOrders: Number(db.prepare("SELECT COUNT(DISTINCT o.reservationId) AS count FROM orders o JOIN reservations r ON r.id=o.reservationId WHERE r.date=? AND o.status NOT IN ('draft','cancelled')").get(date).count), byTime, lowStock, grocery, tasks, kots, kotStatusCounts, dishQuantities, activeMenuItems: db.prepare("SELECT id, name, category FROM menu_items WHERE available=1 ORDER BY category, name").all() };
 }
+
+function actualOrderAnalytics(date) {
+    const orders = db.prepare(`SELECT o.id FROM orders o JOIN reservations r ON r.id=o.reservationId WHERE r.date=? AND o.status NOT IN ('draft','cancelled')`).all(date).map(row => orderWithItems(row.id));
+    const paidRevenue = money(orders.reduce((sum, order) => sum + order.amountPaid, 0));
+    const billedRevenue = money(orders.reduce((sum, order) => sum + order.grandTotal, 0));
+    const topDishes = db.prepare(`SELECT oi.itemName AS name, SUM(oi.quantity) AS quantity, ROUND(SUM(oi.unitPrice * oi.quantity),2) AS sales FROM order_items oi JOIN orders o ON o.id=oi.orderId JOIN reservations r ON r.id=o.reservationId WHERE r.date=? AND o.status NOT IN ('draft','cancelled') GROUP BY oi.itemName ORDER BY quantity DESC, sales DESC LIMIT 5`).all(date);
+    const topCategories = db.prepare(`SELECT COALESCE(m.category,'Uncategorized') AS category, SUM(oi.quantity) AS quantity FROM order_items oi JOIN orders o ON o.id=oi.orderId JOIN reservations r ON r.id=o.reservationId LEFT JOIN menu_items m ON m.id=oi.menuItemId WHERE r.date=? AND o.status NOT IN ('draft','cancelled') GROUP BY COALESCE(m.category,'Uncategorized') ORDER BY quantity DESC, category LIMIT 5`).all(date);
+    return { date, ordersToday: orders.length, billedRevenue, paidRevenue, outstandingRevenue: money(Math.max(0, billedRevenue-paidRevenue)), averageOrderValue: money(orders.length ? billedRevenue/orders.length : 0), topDishes: topDishes.map(row => ({ ...row, quantity:Number(row.quantity), sales:Number(row.sales) })), topCategories: topCategories.map(row => ({ ...row, quantity:Number(row.quantity) })), topCategory: topCategories[0]?.category || null };
+}
+
+app.get("/analytics/orders", authenticateAdmin, (req, res) => {
+    const date = clean(req.query?.date || todayString(), 10);
+    if (!isValidDate(date)) return res.status(400).json({ success:false, message:"Use a valid date." });
+    res.json({ success:true, analytics:actualOrderAnalytics(date) });
+});
 
 app.get("/chef/dashboard", staffOrAdmin, requireRole("admin", "chef"), (req, res) => {
     const date = isValidDate(clean(req.query?.date || todayString(), 10)) ? clean(req.query?.date || todayString(), 10) : todayString();
@@ -1494,11 +1519,14 @@ app.post("/ai/kitchen/briefing", staffOrAdmin, requireRole("admin", "chef"), (re
     const busiest = context.byTime.sort((a, b) => b.guests - a.guests)[0];
     const recommendations = [
         `Plan for ${context.confirmedGuests} confirmed covers (${context.totalGuests} non-cancelled reservations).`,
+        `${context.actualOrders} live KOT${context.actualOrders === 1 ? "" : "s"} received across ${context.reservationsWithOrders} reservation${context.reservationsWithOrders === 1 ? "" : "s"}; expected demand still includes ${Math.max(0, context.reservations.length-context.reservationsWithOrders)} reservation${Math.max(0, context.reservations.length-context.reservationsWithOrders) === 1 ? "" : "s"} without an order.`,
+        `KOT queue: ${context.kotStatusCounts.new} new, ${context.kotStatusCounts.accepted} accepted, ${context.kotStatusCounts.preparing} preparing, ${context.kotStatusCounts.ready} ready, ${context.kotStatusCounts.served} served.`,
+        context.dishQuantities.length ? `Leading actual dish quantities: ${context.dishQuantities.slice(0,5).map(item => `${item.quantity}x ${item.name}`).join(", ")}.` : "No actual dish quantities have been submitted yet.",
         busiest ? `Prepare for the busiest current service window at ${busiest.time} (${busiest.guests} guests).` : "No service windows are currently booked.",
         context.lowStock.length ? `${context.lowStock.length} ingredient${context.lowStock.length === 1 ? " is" : "s are"} at or below minimum stock.` : "No active ingredients are below their minimum stock.",
         context.grocery.length ? `${context.grocery.length} grocery item${context.grocery.length === 1 ? " requires" : "s require"} follow-up.` : "No pending grocery items require follow-up."
     ];
-    res.json({ success: true, assistant: { role: "Royal Table kitchen operations assistant", permittedData: ["reservations", "active menu", "ingredients", "inventory", "grocery", "kitchen tasks"], safeguards: ["server-side context only", "rate limited", "read-only recommendations", "no direct destructive actions"], context, recommendations } });
+    res.json({ success: true, assistant: { role: "Royal Table kitchen operations assistant", permittedData: ["reservations", "actual orders", "KOT statuses", "dish quantities", "active menu", "ingredients", "inventory", "grocery", "kitchen tasks"], safeguards: ["server-side context only", "rate limited", "read-only recommendations", "no direct destructive actions"], context, recommendations } });
 });
 
 app.get(

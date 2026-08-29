@@ -66,6 +66,16 @@ async function run() {
     const reservations = await request("/reservations", { token: admin });
     assert(reservations.body.reservations.find(row => row.id === reservationId).billAmount === 1731.79, "legacy bill total sync failed");
 
+    const analytics = await request("/analytics/orders?date=2026-09-01", { token: admin });
+    assert(analytics.status === 200 && analytics.body.analytics.ordersToday === 1, "actual-order count failed");
+    assert(analytics.body.analytics.billedRevenue === 880.79 && analytics.body.analytics.paidRevenue === 880.79 && analytics.body.analytics.averageOrderValue === 880.79, "actual-order revenue or AOV failed");
+    assert(analytics.body.analytics.topDishes[0].name === "Day 18 Test Curry" && analytics.body.analytics.topDishes[0].quantity === 2 && analytics.body.analytics.topCategory === "Main", "top dish/category analytics failed");
+    assert((await request("/analytics/orders?date=2026-09-01", { token: chef })).status === 401 || (await request("/analytics/orders?date=2026-09-01", { token: chef })).status === 403, "chef accessed financial analytics");
+
+    const briefing = await request("/ai/kitchen/briefing", { method:"POST", token:chef, body:JSON.stringify({date:"2026-09-01"}) });
+    assert(briefing.status === 200 && briefing.body.assistant.context.kotStatusCounts.served === 1 && briefing.body.assistant.context.dishQuantities[0].quantity === 2, "live KOT/dish AI context failed");
+    assert(briefing.body.assistant.recommendations.some(item => item.includes("live KOT")) && briefing.body.assistant.permittedData.includes("actual orders"), "actual-order AI briefing failed");
+
     console.log("Day 18 order/KOT/payment API smoke tests: PASS");
     process.exit(0);
 }

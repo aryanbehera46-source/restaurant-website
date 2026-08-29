@@ -1758,6 +1758,19 @@ tr:hover{
     </div>
 
 
+    <section class="analytics-panel" aria-labelledby="actual-order-title">
+        <h3 id="actual-order-title">Actual Order Performance — Today</h3>
+        <p id="orderAnalyticsState" class="muted">Loading server-calculated order metrics…</p>
+        <div class="analytics-grid">
+            <div class="analytics-card"><div class="analytics-card-title">Orders Today</div><div id="ordersToday" class="analytics-card-number">—</div><div class="analytics-card-subtitle">Submitted KOTs</div></div>
+            <div class="analytics-card"><div class="analytics-card-title">Billed Revenue</div><div id="actualBilledRevenue" class="analytics-card-number">—</div><div class="analytics-card-subtitle">Server-calculated grand totals</div></div>
+            <div class="analytics-card"><div class="analytics-card-title">Payments Received</div><div id="actualPaidRevenue" class="analytics-card-number">—</div><div class="analytics-card-subtitle">Cash, Card, UPI and Other</div></div>
+            <div class="analytics-card"><div class="analytics-card-title">Average Order Value</div><div id="actualAov" class="analytics-card-number">—</div><div class="analytics-card-subtitle">Billed revenue per order</div></div>
+            <div class="analytics-card"><div class="analytics-card-title">Top Category</div><div id="actualTopCategory" class="analytics-card-number">—</div><div class="analytics-card-subtitle">By quantity ordered</div></div>
+        </div>
+        <div class="analytics-layout"><div class="analytics-panel"><h3>Top dishes</h3><div id="actualTopDishes"><p class="muted">No actual orders yet.</p></div></div><div class="analytics-panel"><h3>Payment position</h3><div id="actualPaymentPosition"><p class="muted">No actual orders yet.</p></div></div></div>
+    </section>
+
     <!-- ==================================================
          ANALYTICS PANELS
     ================================================== -->
@@ -2867,6 +2880,8 @@ function showDashboard(){
 
     loadOperations();
 
+    loadActualOrderAnalytics();
+
 }
 
 
@@ -2877,6 +2892,8 @@ function refreshDashboard(){
     loadMenu();
 
     loadOperations();
+
+    loadActualOrderAnalytics();
 
     showToast(
         "Dashboard refreshed.",
@@ -3035,6 +3052,28 @@ async function loadOperations(){
 /* ==================================================
    RESERVATIONS
 ================================================== */
+
+async function loadActualOrderAnalytics(){
+    const state=document.getElementById("orderAnalyticsState");
+    if(!state || !adminToken) return;
+    state.textContent="Loading server-calculated order metrics…";
+    try{
+        const date=formatDateLocal(new Date());
+        const response=await fetch(`${API_URL}/analytics/orders?date=${encodeURIComponent(date)}`,{headers:getAuthHeaders()});
+        const data=await response.json();
+        if(response.status===401||response.status===403){logout();return;}
+        if(!response.ok) throw new Error(data.message||"Unable to load order analytics.");
+        const a=data.analytics;
+        document.getElementById("ordersToday").textContent=a.ordersToday;
+        document.getElementById("actualBilledRevenue").textContent=formatCurrency(a.billedRevenue);
+        document.getElementById("actualPaidRevenue").textContent=formatCurrency(a.paidRevenue);
+        document.getElementById("actualAov").textContent=formatCurrency(a.averageOrderValue);
+        document.getElementById("actualTopCategory").textContent=a.topCategory||"—";
+        document.getElementById("actualTopDishes").innerHTML=a.topDishes.length?a.topDishes.map((dish,index)=>`<div class="analytics-row"><span>${index+1}. ${escapeHtml(dish.name)}</span><strong>${dish.quantity} sold · ${formatCurrency(dish.sales)}</strong></div>`).join(""):"<p class='muted'>No submitted orders today.</p>";
+        document.getElementById("actualPaymentPosition").innerHTML=`<div class="analytics-row"><span>Billed</span><strong>${formatCurrency(a.billedRevenue)}</strong></div><div class="analytics-row"><span>Received</span><strong>${formatCurrency(a.paidRevenue)}</strong></div><div class="analytics-row"><span>Outstanding</span><strong>${formatCurrency(a.outstandingRevenue)}</strong></div>`;
+        state.textContent=`Live actual-order data for ${date}; reservation forecasts remain separate.`;
+    }catch(error){state.textContent=`Order analytics unavailable: ${error.message}`;}
+}
 
 async function loadReservations(){
 

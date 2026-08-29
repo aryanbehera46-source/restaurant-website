@@ -11,6 +11,8 @@
     .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px } .metric { font-size:2rem; color:var(--gold); font-weight:700 }
     input,select,button { padding:10px; border-radius:7px; border:1px solid #665442; font:inherit } input,select { background:#120f0c; color:var(--text) } button { cursor:pointer; background:var(--gold); color:#20170b; font-weight:700 } button.secondary { background:transparent; color:var(--text) }
     table { width:100%; border-collapse:collapse } th,td { text-align:left; padding:9px; border-bottom:1px solid #40352c; vertical-align:top } .warn { color:var(--danger) } .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center } .hidden { display:none }
+    .queue { border-top:4px solid var(--gold) } .queue[data-status="new"]{border-color:#e67b70}.queue[data-status="preparing"]{border-color:#6aa9ff}.queue[data-status="ready"]{border-color:#70c98d}.status-pill{display:inline-block;padding:4px 8px;border-radius:999px;background:#392f27;text-transform:uppercase;font-size:.78rem;letter-spacing:.04em}.loading{opacity:.65;pointer-events:none}
+    @media(max-width:700px){main{padding:14px}.row>input,.row>button{flex:1 1 140px}table,tbody,tr,td{display:block;width:100%}tr{padding:10px 0;border-bottom:1px solid #40352c}td{border:0;padding:4px 0}.metric{font-size:1.65rem}}
   </style>
 </head>
 <body>
@@ -22,7 +24,9 @@
   </section>
   <section id="appPanel" class="hidden">
     <div class="row"><div><h1>Kitchen Dashboard</h1><div id="greeting" class="muted"></div></div><span style="flex:1"></span><input id="serviceDate" type="date"><button class="secondary" id="refresh">Refresh</button><button class="secondary" id="logout">Logout</button></div>
-    <div class="grid"><div class="card"><span class="muted">Confirmed covers</span><div id="confirmed" class="metric">—</div></div><div class="card"><span class="muted">All active covers</span><div id="covers" class="metric">—</div></div><div class="card"><span class="muted">Low-stock warnings</span><div id="lowStockCount" class="metric">—</div></div><div class="card"><span class="muted">Pending grocery items</span><div id="groceryCount" class="metric">—</div></div></div>
+    <p id="pageMessage" class="muted" role="status">Loading today’s kitchen operation…</p>
+    <div class="grid"><div class="card"><span class="muted">Confirmed covers</span><div id="confirmed" class="metric">—</div></div><div class="card"><span class="muted">Actual KOTs</span><div id="actualOrders" class="metric">—</div></div><div class="card"><span class="muted">Low-stock warnings</span><div id="lowStockCount" class="metric">—</div></div><div class="card"><span class="muted">Pending grocery items</span><div id="groceryCount" class="metric">—</div></div></div>
+    <div class="grid" id="queueSummary"><div class="card queue" data-status="new">New <div id="queueNew" class="metric">—</div></div><div class="card queue" data-status="accepted">Accepted <div id="queueAccepted" class="metric">—</div></div><div class="card queue" data-status="preparing">Preparing <div id="queuePreparing" class="metric">—</div></div><div class="card queue" data-status="ready">Ready <div id="queueReady" class="metric">—</div></div></div>
     <div class="grid"><section class="card"><h2>Service workload</h2><div id="workload"></div></section><section class="card"><h2>AI kitchen briefing</h2><div id="briefing" class="muted">Loading operational context…</div></section></div>
     <section class="card"><h2>Live Kitchen Order Tickets</h2><p class="muted">Each KOT moves forward in order: New → Accepted → Preparing → Ready → Served.</p><div id="kots"></div></section>
     <section class="card"><h2>Reservations and special requests</h2><div id="reservations"></div></section>
@@ -40,8 +44,10 @@ function escapeHtml(value) { const el=document.createElement("div"); el.textCont
 async function api(path, options={}) { const response=await fetch(API_URL+path,{...options,headers:{"Content-Type":"application/json",Authorization:`Bearer ${token}`,...(options.headers||{})}}); const data=await response.json().catch(()=>({success:false,message:"Invalid server response."})); if(!response.ok) throw new Error(data.message||"Request failed."); return data; }
 function list(items, render, empty="Nothing to show.") { return items.length ? `<table><tbody>${items.map(render).join("")}</tbody></table>` : `<p class="muted">${empty}</p>`; }
 async function load() {
-  const date=$("serviceDate").value; const {dashboard:d}=await api(`/chef/dashboard?date=${encodeURIComponent(date)}`);
-  $("confirmed").textContent=d.confirmedGuests; $("covers").textContent=d.totalGuests; $("lowStockCount").textContent=d.lowStock.length; $("groceryCount").textContent=d.grocery.length;
+  const date=$("serviceDate").value; $("appPanel").classList.add("loading"); $("pageMessage").textContent="Loading kitchen operation…";
+  try { const {dashboard:d}=await api(`/chef/dashboard?date=${encodeURIComponent(date)}`);
+  $("confirmed").textContent=d.confirmedGuests; $("actualOrders").textContent=d.actualOrders; $("lowStockCount").textContent=d.lowStock.length; $("groceryCount").textContent=d.grocery.length;
+  $("queueNew").textContent=d.kotStatusCounts.new; $("queueAccepted").textContent=d.kotStatusCounts.accepted; $("queuePreparing").textContent=d.kotStatusCounts.preparing; $("queueReady").textContent=d.kotStatusCounts.ready;
   $("workload").innerHTML=list(d.byTime,x=>`<tr><td><strong>${escapeHtml(x.time)}</strong></td><td>${x.guests} covers</td><td>${x.reservations} reservations</td></tr>`,"No reservations for this service date.");
   $("reservations").innerHTML=list(d.reservations,r=>`<tr><td><strong>${escapeHtml(r.time)}</strong><br><span class="muted">${escapeHtml(r.status)}</span></td><td>${r.guests} guests</td><td>${escapeHtml(r.name)}${r.specialRequest?`<br><span class="warn">${escapeHtml(r.specialRequest)}</span>`:""}</td></tr>`,"No reservations for this service date.");
   $("lowStock").innerHTML=list(d.lowStock,i=>`<tr><td>${escapeHtml(i.name)}</td><td class="warn">${i.currentQuantity} / ${i.minimumQuantity} ${escapeHtml(i.unit)}</td></tr>`,"All active ingredients are above minimum stock.");
@@ -49,8 +55,10 @@ async function load() {
   $("tasks").innerHTML=list(d.tasks,t=>`<tr><td>${escapeHtml(t.title)}</td><td><button class="secondary" onclick="completeTask(${t.id})">Complete</button></td></tr>`,"No pending preparation tasks.");
   const {orders}=await api(`/kitchen/orders?date=${encodeURIComponent(date)}`);
   const next={new:"accepted",accepted:"preparing",preparing:"ready",ready:"served"};
-  $("kots").innerHTML=list(orders,o=>`<tr><td><strong>KOT ${o.id}</strong><br><span class="muted">Order ${o.orderNumber} · ${escapeHtml(o.time)}</span></td><td>${escapeHtml(o.guestName)} · ${o.guests} guests<br>${o.items.map(i=>`<strong>${i.quantity}×</strong> ${escapeHtml(i.itemName)}${i.notes?` <span class="warn">(${escapeHtml(i.notes)})</span>`:""}`).join("<br>")}${o.notes?`<br><span class="warn">Kitchen: ${escapeHtml(o.notes)}</span>`:""}</td><td><strong>${escapeHtml(o.status.toUpperCase())}</strong></td><td>${next[o.status]?`<button onclick="advanceKot(${o.id},'${next[o.status]}')">Mark ${escapeHtml(next[o.status])}</button>`:"Served"}</td></tr>`,"No active KOTs for this service date.");
+  $("kots").innerHTML=list(orders,o=>`<tr><td><strong>KOT ${o.id}</strong><br><span class="muted">Order ${o.orderNumber} · ${escapeHtml(o.time)}</span></td><td><strong>${escapeHtml(o.guestName)}</strong> · ${o.guests} guests<br>Reservation #${o.reservationId}<br>${o.items.map(i=>`<strong>${i.quantity}×</strong> ${escapeHtml(i.itemName)}${i.notes?` <span class="warn">(${escapeHtml(i.notes)})</span>`:""}`).join("<br>")}${o.notes?`<br><span class="warn">Kitchen: ${escapeHtml(o.notes)}</span>`:""}</td><td><span class="status-pill">${escapeHtml(o.status)}</span></td><td>${next[o.status]?`<button onclick="advanceKot(${o.id},'${next[o.status]}')">Mark ${escapeHtml(next[o.status])}</button>`:"Served"}</td></tr>`,"No KOTs yet. Submitted orders will appear here automatically.");
   const ai=await api("/ai/kitchen/briefing",{method:"POST",body:JSON.stringify({date})}); $("briefing").innerHTML=`<ul>${ai.assistant.recommendations.map(r=>`<li>${escapeHtml(r)}</li>`).join("")}</ul>`;
+  $("pageMessage").textContent=`Live view for ${date}. ${orders.length} KOT${orders.length===1?"":"s"} loaded.`;
+  } catch(error) { $("pageMessage").textContent=`Could not load kitchen operation: ${error.message}`; throw error; } finally { $("appPanel").classList.remove("loading"); }
 }
 async function completeTask(id) { await api(`/kitchen/tasks/${id}`,{method:"PUT",body:JSON.stringify({status:"complete"})}); load(); }
 async function advanceKot(id,status) { try { await api(`/kitchen/orders/${id}/status`,{method:"PUT",body:JSON.stringify({status})}); await load(); } catch(error) { showError(error); } }
