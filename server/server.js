@@ -1542,7 +1542,7 @@ app.get(
                 "Royal Table backend is running!",
 
             version:
-                "final-fix-20260829"
+                "customer-preorder-20260829"
 
         });
 
@@ -1751,6 +1751,40 @@ app.post(
                 Number(
                     req.body?.guests
                 );
+
+            const requestedItems =
+                req.body?.items;
+
+            let checkedPreorder =
+                null;
+
+            if (requestedItems !== undefined && requestedItems !== null) {
+
+                if (!Array.isArray(requestedItems)) {
+
+                    return res.status(400).json({
+                        success: false,
+                        message: "Reservation items must be an array."
+                    });
+
+                }
+
+                if (requestedItems.length > 0) {
+
+                    checkedPreorder = validateOrderItems(requestedItems);
+
+                    if (checkedPreorder.error) {
+
+                        return res.status(400).json({
+                            success: false,
+                            message: checkedPreorder.error
+                        });
+
+                    }
+
+                }
+
+            }
 
 
             // REQUIRED FIELDS
@@ -2066,59 +2100,61 @@ app.post(
 
             // INSERT
 
-            const result =
-                db
-                    .prepare(
-                        `
+            let id;
+            let preorderOrderId = null;
 
-                        INSERT INTO reservations
+            db.transaction(() => {
 
-                        (
-
-                            name,
-
-                            email,
-
-                            date,
-
-                            time,
-
-                            guests,
-
-                            phone,
-
-                            specialRequest
-
-                        )
-
-                        VALUES (?, ?, ?, ?, ?, ?, ?)
-
-                        `
-                    )
-                    .run(
-
-                        name,
-
-                        email,
-
-                        date,
-
-                        time,
-
-                        guests,
-
-                        phone,
-
-                        specialRequest ||
-                            null
-
-                    );
-
-
-            const id =
-                Number(
-                    result.lastInsertRowid
+                const result = db.prepare(`
+                    INSERT INTO reservations
+                    (name, email, date, time, guests, phone, specialRequest)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                `).run(
+                    name,
+                    email,
+                    date,
+                    time,
+                    guests,
+                    phone,
+                    specialRequest || null
                 );
+
+                id = Number(result.lastInsertRowid);
+
+                if (checkedPreorder) {
+
+                    preorderOrderId = Number(db.prepare(`
+                        INSERT INTO orders
+                        (reservationId, orderNumber, status, notes, subtotal)
+                        VALUES (?, 1, 'draft', ?, ?)
+                    `).run(
+                        id,
+                        "Customer pre-order — review before sending to kitchen.",
+                        checkedPreorder.subtotal
+                    ).lastInsertRowid);
+
+                    const insertItem = db.prepare(`
+                        INSERT INTO order_items
+                        (orderId, menuItemId, itemName, unitPrice, quantity, notes)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                    `);
+
+                    for (const item of checkedPreorder.items) {
+                        insertItem.run(
+                            preorderOrderId,
+                            item.menuItemId,
+                            item.itemName,
+                            item.unitPrice,
+                            item.quantity,
+                            null
+                        );
+                    }
+
+                    syncReservationBill(id);
+
+                }
+
+            })();
 
 
             const newBooked =
@@ -2154,6 +2190,10 @@ app.post(
                 phone,
 
                 specialRequest,
+
+                preorder: preorderOrderId
+                    ? orderWithItems(preorderOrderId)
+                    : null,
 
                 bookedGuests:
                     newBooked,

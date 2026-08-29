@@ -28,6 +28,14 @@ async function run() {
 
     const menu = await request("/menu", { method: "POST", token: admin, body: JSON.stringify({ name: "Day 18 Test Curry", category: "Main", price: 425.5, available: true }) });
     const menuItemId = menu.body.menuItem.id;
+    const customerPreorder = await request("/reservations", { method: "POST", body: JSON.stringify({ name: "Preorder Guest", email: "preorder@example.com", date: "2026-09-01", time: "18:30", guests: 2, phone: "9876543211", items: [{ menuItemId, quantity: 2, unitPrice: 1 }] }) });
+    assert(customerPreorder.status === 201 && customerPreorder.body.reservationId, "customer pre-order reservation failed");
+    const customerOrders = await request(`/reservations/${customerPreorder.body.reservationId}/orders`, { token: admin });
+    assert(customerOrders.status === 200 && customerOrders.body.orders.length === 1, "customer pre-order did not reach Admin");
+    assert(customerOrders.body.orders[0].status === "draft" && customerOrders.body.orders[0].subtotal === 851, "customer pre-order was not a server-priced draft");
+    assert(customerOrders.body.orders[0].items[0].unitPrice === 425.5, "customer pre-order overrode the server price");
+    const invalidPreorder = await request("/reservations", { method: "POST", body: JSON.stringify({ name: "Invalid Preorder", email: "invalid-preorder@example.com", date: "2026-09-01", time: "18:45", guests: 2, phone: "9876543212", items: [{ menuItemId, quantity: 0 }] }) });
+    assert(invalidPreorder.status === 400, "invalid customer pre-order quantity was accepted");
     const reservation = await request("/reservations", { method: "POST", body: JSON.stringify({ name: "Day Eighteen Guest", email: "day18@example.com", date: "2026-09-01", time: "19:00", guests: 4, phone: "9876543210", specialRequest: "Window table" }) });
     const reservationId = reservation.body.reservationId;
     assert(reservation.status === 201 && reservationId, "reservation creation failed");

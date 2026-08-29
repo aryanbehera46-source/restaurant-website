@@ -18,12 +18,20 @@
 
     <link
         rel="stylesheet"
-        href="style.css?v=customer-dark-contact-20260829"
+        href="style.css?v=customer-pages-cart-20260829"
     >
-    <link rel="stylesheet" href="ui.css?v=customer-dark-contact-20260829">
+    <link rel="stylesheet" href="ui.css?v=customer-pages-cart-20260829">
 </head>
 
-<body>
+<body data-customer-page="home">
+
+    <script>
+        (() => {
+            const allowedPages = new Set(["home", "menu", "about", "contact", "reservation"]);
+            const requestedPage = new URLSearchParams(window.location.search).get("page") || "home";
+            document.body.dataset.customerPage = allowedPages.has(requestedPage) ? requestedPage : "home";
+        })();
+    </script>
 
     <!-- ==================================================
          NAVBAR
@@ -31,32 +39,32 @@
 
     <header class="navbar">
 
-        <a class="logo" href="#home" aria-label="Royal Table home">
+        <a class="logo" href="index.html" aria-label="Royal Table home">
             Royal Table
         </a>
 
         <nav aria-label="Main navigation">
 
-            <a href="#home">
+            <a href="index.html">
                 Home
             </a>
 
-            <a href="#full-menu">
+            <a href="index.html?page=menu">
     Menu
 </a>
 
-            <a href="#about">
+            <a href="index.html?page=about">
                 About
             </a>
 
-            <a href="#contact">
+            <a href="index.html?page=contact">
                 Contact
             </a>
 
         </nav>
 
         <a
-            href="#reservation"
+            href="index.html?page=reservation"
             class="reservation-button"
         >
             Reserve a Table
@@ -91,7 +99,7 @@
             </p>
 
             <a
-                href="#full-menu"
+                href="index.html?page=menu"
                 class="hero-button hero-menu-button"
             >
                 Explore the Menu
@@ -113,6 +121,26 @@
         <div class="experience-item">
             <strong>Gracious service</strong>
             <span>Personal attention from arrival to last course</span>
+        </div>
+    </section>
+
+    <section class="home-story" aria-labelledby="home-story-title">
+        <div class="home-story-copy">
+            <p class="eyebrow">THE ROYAL TABLE EXPERIENCE</p>
+            <h2 id="home-story-title">Rooted in Indian Hospitality. Made for Today.</h2>
+        </div>
+        <div class="home-story-detail">
+            <p>
+                Our kitchen moves between the glow of the tandoor and the
+                patience of slow-cooked gravies. Familiar recipes arrive with
+                sharper balance, thoughtful plating and the warmth they were
+                always meant to carry.
+            </p>
+            <p>
+                Come for an unhurried lunch, an intimate dinner or a table full
+                of people you love. We will take care of the rhythm of the evening.
+            </p>
+            <a href="index.html?page=about">Read our story</a>
         </div>
     </section>
 
@@ -223,7 +251,7 @@
             </div>
 
             <a
-                href="#full-menu"
+                href="index.html?page=menu"
                 class="about-button"
             >
                 Explore Our Menu
@@ -355,6 +383,20 @@
             class="menu-list"
         ></div>
 
+        <aside class="menu-cart" id="menuCart" aria-live="polite">
+            <div>
+                <p class="eyebrow">YOUR SELECTION</p>
+                <h3>Dining Cart <span id="cartCount">0</span></h3>
+            </div>
+            <div id="cartLines" class="cart-lines">
+                <p class="cart-empty">Choose dishes to add them to your reservation.</p>
+            </div>
+            <div class="cart-footer">
+                <strong id="cartTotal">₹0</strong>
+                <a href="index.html?page=reservation" id="cartReserveLink">Continue to reservation</a>
+            </div>
+        </aside>
+
     </section>
 
 
@@ -389,6 +431,15 @@
             class="reservation-form"
             id="reservationForm"
         >
+
+            <div class="reservation-order-summary" id="reservationOrderSummary">
+                <div>
+                    <span>Selected dishes</span>
+                    <strong id="reservationCartCount">No dishes selected</strong>
+                </div>
+                <div id="reservationCartLines"></div>
+                <a href="index.html?page=menu">Edit menu selection</a>
+            </div>
 
             <!-- NAME + EMAIL -->
 
@@ -1254,9 +1305,18 @@
 
                             </div>
 
-                            <span class="menu-item-price">
-                                ${formatCurrency(item.price)}
-                            </span>
+                            <div class="menu-item-actions">
+                                <span class="menu-item-price">
+                                    ${formatCurrency(item.price)}
+                                </span>
+                                <button
+                                    type="button"
+                                    class="add-to-cart-button"
+                                    data-menu-item-id="${Number(item.id)}"
+                                >
+                                    Add to cart
+                                </button>
+                            </div>
 
                         </div>
 
@@ -1267,9 +1327,101 @@
                         menuItem
                     );
 
+                    menuItem
+                        .querySelector(".add-to-cart-button")
+                        .addEventListener("click", () => addToCart(item));
+
                 }
             );
 
+        }
+
+
+        // ==================================================
+        // CUSTOMER DINING CART
+        // ==================================================
+
+        const CART_STORAGE_KEY = "royalTableDiningCart";
+
+        function readCart() {
+            try {
+                const parsed = JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || "[]");
+                return Array.isArray(parsed)
+                    ? parsed.filter(item => Number.isInteger(Number(item.menuItemId)) && Number(item.quantity) > 0)
+                    : [];
+            } catch (_) {
+                return [];
+            }
+        }
+
+        function writeCart(cart) {
+            localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+            renderCart();
+        }
+
+        function addToCart(item) {
+            const cart = readCart();
+            const existing = cart.find(line => Number(line.menuItemId) === Number(item.id));
+            if (existing) {
+                existing.quantity = Math.min(20, Number(existing.quantity) + 1);
+            } else {
+                cart.push({
+                    menuItemId: Number(item.id),
+                    name: String(item.name),
+                    price: Number(item.price),
+                    quantity: 1
+                });
+            }
+            writeCart(cart);
+        }
+
+        function changeCartQuantity(menuItemId, change) {
+            const cart = readCart();
+            const line = cart.find(item => Number(item.menuItemId) === Number(menuItemId));
+            if (!line) return;
+            line.quantity = Number(line.quantity) + change;
+            writeCart(cart.filter(item => item.quantity > 0));
+        }
+
+        function renderCart() {
+            const cart = readCart();
+            const totalQuantity = cart.reduce((sum, item) => sum + Number(item.quantity), 0);
+            const total = cart.reduce((sum, item) => sum + Number(item.price) * Number(item.quantity), 0);
+            const cartCount = document.getElementById("cartCount");
+            const cartTotal = document.getElementById("cartTotal");
+            const cartLines = document.getElementById("cartLines");
+            const reservationCount = document.getElementById("reservationCartCount");
+            const reservationLines = document.getElementById("reservationCartLines");
+
+            if (cartCount) cartCount.textContent = String(totalQuantity);
+            if (cartTotal) cartTotal.textContent = formatCurrency(total);
+            if (reservationCount) {
+                reservationCount.textContent = totalQuantity
+                    ? `${totalQuantity} item${totalQuantity === 1 ? "" : "s"} · ${formatCurrency(total)}`
+                    : "No dishes selected";
+            }
+
+            const markup = cart.length
+                ? cart.map(item => `
+                    <div class="cart-line">
+                        <div><strong>${escapeHtml(item.name)}</strong><span>${formatCurrency(item.price)} each</span></div>
+                        <div class="cart-quantity">
+                            <button type="button" data-cart-change="-1" data-cart-id="${Number(item.menuItemId)}" aria-label="Remove one ${escapeHtml(item.name)}">−</button>
+                            <span>${Number(item.quantity)}</span>
+                            <button type="button" data-cart-change="1" data-cart-id="${Number(item.menuItemId)}" aria-label="Add one ${escapeHtml(item.name)}">+</button>
+                        </div>
+                    </div>
+                `).join("")
+                : `<p class="cart-empty">Choose dishes to add them to your reservation.</p>`;
+
+            if (cartLines) cartLines.innerHTML = markup;
+            if (reservationLines) reservationLines.innerHTML = cart.length ? markup : "";
+
+            document.querySelectorAll("[data-cart-change]").forEach(button => {
+                button.addEventListener("click", () => {
+                    changeCartQuantity(Number(button.dataset.cartId), Number(button.dataset.cartChange));
+                });
+            });
         }
 
 
@@ -1688,7 +1840,12 @@
 
                                         phone,
 
-                                        specialRequest
+                                        specialRequest,
+
+                                        items: readCart().map(item => ({
+                                            menuItemId: Number(item.menuItemId),
+                                            quantity: Number(item.quantity)
+                                        }))
 
                                     })
 
@@ -1759,6 +1916,10 @@
 
 
                     reservationForm.reset();
+
+                    localStorage.removeItem(CART_STORAGE_KEY);
+
+                    renderCart();
 
 
                     currentCapacity =
@@ -2069,9 +2230,11 @@
 
         loadMenu();
 
+        renderCart();
+
     </script>
 
-<script src="ui.js?v=customer-dark-contact-20260829"></script>
+<script src="ui.js?v=customer-pages-cart-20260829"></script>
 </body>
 
 </html>
