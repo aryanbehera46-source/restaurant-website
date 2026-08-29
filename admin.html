@@ -889,8 +889,12 @@ tr:hover{
 ================================================== */
 
 .menu-section{
-
     margin-top:40px;
+    padding:28px;
+    background:#fff;
+    border:1px solid #e8e2d7;
+    border-radius:16px;
+    box-shadow:0 12px 35px rgba(32,24,16,.08);
 }
 
 .menu-heading{
@@ -907,19 +911,26 @@ tr:hover{
 }
 
 .menu-heading h2{
-
     font-size:28px;
 }
 
+.menu-heading-copy p{color:#6f675e;margin-top:7px;line-height:1.5}
+.menu-toolbar{display:grid;grid-template-columns:minmax(260px,2fr) minmax(170px,1fr) minmax(160px,1fr) auto;gap:12px;align-items:end;padding:18px;margin-bottom:18px;background:#faf8f4;border:1px solid #ebe5db;border-radius:12px}
+.menu-filter label{display:block;margin-bottom:7px;color:#51483e;font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase}
+.menu-filter input,.menu-filter select{width:100%;min-height:44px;padding:11px 12px;background:#fff;border:1px solid #d8d0c5;border-radius:8px;font-size:14px}
+.menu-filter input:focus,.menu-filter select:focus{outline:3px solid rgba(212,175,55,.2);border-color:#b99422}
+.menu-results-summary{display:flex;justify-content:space-between;gap:12px;margin-bottom:12px;color:#6f675e;font-size:14px}
+.menu-db-id{display:block;margin-top:4px;color:#9a9187;font-size:11px}
+.menu-name-cell strong{display:block;color:#201b16}
+.menu-description-cell{max-width:310px;color:#675f56;line-height:1.45}
+
 .menu-image{
-
-    width:70px;
-
-    height:55px;
-
+    width:76px;
+    height:58px;
     object-fit:cover;
-
-    border-radius:6px;
+    border-radius:9px;
+    border:1px solid #e6ded2;
+    background:#f1ede7;
 }
 
 .no-image{
@@ -954,6 +965,10 @@ tr:hover{
 
     background:#555;
 }
+
+.menu-table th{background:#241d17;color:#f9f1e4;font-size:12px;letter-spacing:.035em;text-transform:uppercase}
+.menu-table td{padding:13px 15px}
+.menu-table .action-buttons button{padding:8px 10px;font-size:12px}
 
 
 /* ==================================================
@@ -1373,6 +1388,11 @@ tr:hover{
 
         align-items:flex-start;
     }
+
+    .menu-section{padding:20px 16px}
+    .menu-toolbar{grid-template-columns:1fr}
+    .menu-toolbar button{width:100%}
+    .menu-results-summary{flex-direction:column}
 
     .menu-form-row{
 
@@ -1983,9 +2003,10 @@ tr:hover{
 
         <div class="menu-heading">
 
-            <h2>
-                Menu Management
-            </h2>
+            <div class="menu-heading-copy">
+                <h2>Menu Management</h2>
+                <p>Manage dishes, pricing, imagery, and service availability without changing stable database IDs.</p>
+            </div>
 
 
             <button
@@ -1995,6 +2016,15 @@ tr:hover{
             </button>
 
         </div>
+
+        <div class="menu-toolbar" aria-label="Menu filters">
+            <div class="menu-filter"><label for="menuSearch">Search menu</label><input id="menuSearch" type="search" placeholder="Dish name, category, row or DB ID" autocomplete="off" oninput="applyMenuFilters()"></div>
+            <div class="menu-filter"><label for="menuCategoryFilter">Category</label><select id="menuCategoryFilter" onchange="applyMenuFilters()"><option value="">All categories</option></select></div>
+            <div class="menu-filter"><label for="menuAvailabilityFilter">Availability</label><select id="menuAvailabilityFilter" onchange="applyMenuFilters()"><option value="">All items</option><option value="available">Available</option><option value="unavailable">Unavailable</option></select></div>
+            <button type="button" class="clear-button" onclick="clearMenuFilters()">Clear filters</button>
+        </div>
+
+        <div class="menu-results-summary" aria-live="polite"><span id="menuResultsCount">Loading menu items…</span><span>Row numbers are sequential; database IDs remain unchanged.</span></div>
 
 
         <div class="menu-table-wrapper">
@@ -2025,7 +2055,7 @@ tr:hover{
 
                     <tr>
 
-                        <th>ID</th>
+                        <th>#</th>
 
                         <th>Image</th>
 
@@ -4788,7 +4818,7 @@ async function loadMenu(){
 
 
         allMenuItems.forEach(
-            item => {
+            (item, index) => {
 
                 const row =
                     document.createElement(
@@ -4800,6 +4830,11 @@ async function loadMenu(){
                     Number(
                         item.available
                     ) === 1;
+
+                row.dataset.menuIndex = String(index);
+                row.dataset.category = String(item.category || "");
+                row.dataset.availability = available ? "available" : "unavailable";
+                row.dataset.search = [item.name, item.category, item.id, index + 1, row.dataset.availability].join(" ").toLowerCase();
 
 
                 const imageSource =
@@ -4846,16 +4881,15 @@ async function loadMenu(){
                 row.innerHTML = `
 
                     <td>
-                        ${escapeHtml(
-                            item.id
-                        )}
+                        <strong>${index + 1}</strong>
+                        <span class="menu-db-id">DB ID ${escapeHtml(item.id)}</span>
                     </td>
 
                     <td>
                         ${image}
                     </td>
 
-                    <td>
+                    <td class="menu-name-cell">
                         <strong>
                             ${escapeHtml(
                                 item.name
@@ -4869,7 +4903,7 @@ async function loadMenu(){
                         )}
                     </td>
 
-                    <td>
+                    <td class="menu-description-cell">
                         ${
                             item.description
                             ?
@@ -4975,6 +5009,9 @@ async function loadMenu(){
         table.style.display =
             "table";
 
+        populateMenuCategoryFilter();
+        applyMenuFilters();
+
 
     }catch(errorObject){
 
@@ -4990,6 +5027,46 @@ async function loadMenu(){
 
     }
 
+}
+
+function populateMenuCategoryFilter(){
+    const select = document.getElementById("menuCategoryFilter");
+    const current = select.value;
+    const categories = [...new Set(allMenuItems.map(item => String(item.category || "").trim()).filter(Boolean))].sort((a,b) => a.localeCompare(b));
+    select.innerHTML = '<option value="">All categories</option>' + categories.map(category => `<option value="${escapeAttribute(category)}">${escapeHtml(category)}</option>`).join("");
+    if(categories.includes(current)) select.value = current;
+}
+
+function applyMenuFilters(){
+    const query = document.getElementById("menuSearch").value.trim().toLowerCase();
+    const category = document.getElementById("menuCategoryFilter").value;
+    const availability = document.getElementById("menuAvailabilityFilter").value;
+    const rows = [...document.querySelectorAll("#menuBody tr")];
+    let visibleCount = 0;
+    rows.forEach(row => {
+        const visible = (!query || row.dataset.search.includes(query)) && (!category || row.dataset.category === category) && (!availability || row.dataset.availability === availability);
+        row.style.display = visible ? "" : "none";
+        if(visible) visibleCount += 1;
+    });
+    document.getElementById("menuResultsCount").textContent = `${visibleCount} of ${allMenuItems.length} menu item${allMenuItems.length === 1 ? "" : "s"}`;
+    const empty = document.getElementById("menuEmpty");
+    const table = document.getElementById("menuTable");
+    if(allMenuItems.length && visibleCount === 0){
+        empty.textContent = "No menu items match these filters. Clear the filters to see the full menu.";
+        empty.style.display = "block";
+        table.style.display = "none";
+    }else if(allMenuItems.length){
+        empty.style.display = "none";
+        table.style.display = "table";
+    }
+}
+
+function clearMenuFilters(){
+    document.getElementById("menuSearch").value = "";
+    document.getElementById("menuCategoryFilter").value = "";
+    document.getElementById("menuAvailabilityFilter").value = "";
+    applyMenuFilters();
+    document.getElementById("menuSearch").focus();
 }
 
 
