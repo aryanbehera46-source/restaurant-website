@@ -5,6 +5,7 @@ require("dotenv").config({
 const express = require("express");
 const Database = require("better-sqlite3");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 const nodemailer = require("nodemailer");
 const path = require("path");
 
@@ -201,6 +202,78 @@ db.exec(`
         updatedAt TEXT NOT NULL
             DEFAULT CURRENT_TIMESTAMP
     );
+
+    CREATE TABLE IF NOT EXISTS staff_users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        username TEXT NOT NULL COLLATE NOCASE UNIQUE,
+        passwordHash TEXT NOT NULL,
+        role TEXT NOT NULL CHECK(role IN ('admin', 'chef')),
+        active INTEGER NOT NULL DEFAULT 1 CHECK(active IN (0, 1)),
+        lastLoginAt TEXT,
+        createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS ingredients (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL COLLATE NOCASE UNIQUE,
+        category TEXT NOT NULL,
+        unit TEXT NOT NULL,
+        currentQuantity REAL NOT NULL DEFAULT 0 CHECK(currentQuantity >= 0),
+        minimumQuantity REAL NOT NULL DEFAULT 0 CHECK(minimumQuantity >= 0),
+        supplier TEXT,
+        active INTEGER NOT NULL DEFAULT 1 CHECK(active IN (0, 1)),
+        createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS inventory_movements (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        ingredientId INTEGER NOT NULL REFERENCES ingredients(id) ON DELETE CASCADE,
+        quantityChange REAL NOT NULL,
+        reason TEXT NOT NULL,
+        createdByStaffId INTEGER REFERENCES staff_users(id) ON DELETE SET NULL,
+        createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS grocery_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        ingredientId INTEGER REFERENCES ingredients(id) ON DELETE SET NULL,
+        name TEXT NOT NULL,
+        requiredQuantity REAL NOT NULL DEFAULT 0 CHECK(requiredQuantity >= 0),
+        currentQuantity REAL NOT NULL DEFAULT 0 CHECK(currentQuantity >= 0),
+        unit TEXT NOT NULL,
+        priority TEXT NOT NULL DEFAULT 'normal' CHECK(priority IN ('low', 'normal', 'urgent')),
+        status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending', 'purchased', 'received')),
+        createdByStaffId INTEGER REFERENCES staff_users(id) ON DELETE SET NULL,
+        createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS kitchen_tasks (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        details TEXT,
+        serviceDate TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending', 'complete')),
+        createdByStaffId INTEGER REFERENCES staff_users(id) ON DELETE SET NULL,
+        completedByStaffId INTEGER REFERENCES staff_users(id) ON DELETE SET NULL,
+        createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updatedAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS menu_ingredients (
+        menuItemId INTEGER NOT NULL REFERENCES menu_items(id) ON DELETE CASCADE,
+        ingredientId INTEGER NOT NULL REFERENCES ingredients(id) ON DELETE CASCADE,
+        quantityPerServing REAL NOT NULL DEFAULT 0 CHECK(quantityPerServing >= 0),
+        PRIMARY KEY(menuItemId, ingredientId)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_staff_username ON staff_users(username);
+    CREATE INDEX IF NOT EXISTS idx_ingredients_active ON ingredients(active);
+    CREATE INDEX IF NOT EXISTS idx_grocery_status ON grocery_items(status);
+    CREATE INDEX IF NOT EXISTS idx_kitchen_tasks_date ON kitchen_tasks(serviceDate);
 
 `);
 
@@ -659,6 +732,73 @@ function authenticateAdmin(
 }
 
 // ==================================================
+// STAFF AUTHENTICATION AND AUTHORIZATION
+// ==================================================
+
+function authenticateStaff(req, res, next) {
+    try {
+        const authHeader = req.headers.authorization || "";
+        if (!authHeader.startsWith("Bearer ")) {
+            return res.status(401).json({ success: false, message: "Authentication required." });
+        }
+
+        const token = authHeader.slice(7).trim();
+        const decoded = jwt.verify(token, JWT_SECRET, {
+            issuer: "royal-table",
+            audience: "royal-table-staff"
+        });
+
+        const staff = db.prepare(`
+            SELECT id, name, username, role, active
+            FROM staff_users WHERE id = ?
+        `).get(decoded.staffId);
+
+        if (!staff || !staff.active || staff.role !== decoded.role) {
+            return res.status(401).json({ success: false, message: "Staff account is inactive or unavailable." });
+        }
+
+        req.staff = staff;
+        next();
+    } catch (error) {
+        return res.status(401).json({
+            success: false,
+            message: error.name === "TokenExpiredError" ? "Your staff session has expired. Please login again." : "Invalid staff session."
+        });
+    }
+}
+
+function requireRole(...roles) {
+    return (req, res, next) => {
+        if (!req.staff || !roles.includes(req.staff.role)) {
+            return res.status(403).json({ success: false, message: "You do not have permission for this action." });
+        }
+        next();
+    };
+}
+
+function staffOrAdmin(req, res, next) {
+    const authHeader = req.headers.authorization || "";
+    if (!authHeader.startsWith("Bearer ")) {
+        return res.status(401).json({ success: false, message: "Authentication required." });
+    }
+    try {
+        const token = authHeader.slice(7).trim();
+        const decoded = jwt.verify(token, JWT_SECRET, { issuer: "royal-table" });
+        if (decoded.aud === "royal-table-admin" && decoded.role === "admin") {
+            req.staff = { id: null, username: decoded.username, role: "admin", active: 1 };
+            return next();
+        }
+    } catch (_) {
+        // Staff verification below returns the standard response.
+    }
+    return authenticateStaff(req, res, next);
+}
+
+function validQuantity(value) {
+    return Number.isFinite(Number(value)) && Number(value) >= 0;
+}
+
+// ==================================================
 // EMAIL CONFIGURATION
 // ==================================================
 
@@ -938,6 +1078,212 @@ async function sendReservationEmails(
 // ==================================================
 // TEST ROUTE
 // ==================================================
+
+// ==================================================
+// DAY 17: STAFF, KITCHEN, INVENTORY, AND GROCERY API
+// ==================================================
+
+const staffLoginAttempts = new Map();
+const aiKitchenAttempts = new Map();
+
+function publicStaff(staff) {
+    const { passwordHash, ...safeStaff } = staff;
+    return safeStaff;
+}
+
+app.post("/staff/login", async (req, res) => {
+    const clientKey = String(req.ip || "unknown");
+    if (rateLimited(staffLoginAttempts, clientKey, LOGIN_MAX_ATTEMPTS, LOGIN_WINDOW_MS)) {
+        return res.status(429).json({ success: false, message: "Too many login attempts. Please try again later." });
+    }
+    const username = clean(req.body?.username, 100);
+    const password = String(req.body?.password || "");
+    const staff = db.prepare("SELECT * FROM staff_users WHERE username = ?").get(username);
+    if (!staff || !staff.active || !(await bcrypt.compare(password, staff.passwordHash))) {
+        return res.status(401).json({ success: false, message: "Invalid username or password." });
+    }
+    staffLoginAttempts.delete(clientKey);
+    db.prepare("UPDATE staff_users SET lastLoginAt = CURRENT_TIMESTAMP, updatedAt = CURRENT_TIMESTAMP WHERE id = ?").run(staff.id);
+    const token = jwt.sign({ staffId: staff.id, username: staff.username, role: staff.role }, JWT_SECRET, {
+        expiresIn: "8h", issuer: "royal-table", audience: "royal-table-staff"
+    });
+    return res.json({ success: true, message: "Login successful.", token, staff: publicStaff({ ...staff, passwordHash: undefined }) });
+});
+
+app.get("/staff", authenticateAdmin, (req, res) => {
+    const staff = db.prepare("SELECT id, name, username, role, active, lastLoginAt, createdAt, updatedAt FROM staff_users ORDER BY name").all();
+    res.json({ success: true, staff });
+});
+
+app.post("/staff", authenticateAdmin, async (req, res) => {
+    const name = clean(req.body?.name, 100);
+    const username = clean(req.body?.username, 100);
+    const password = String(req.body?.password || "");
+    const role = clean(req.body?.role, 20);
+    if (!name || !username || password.length < 8 || !["admin", "chef"].includes(role)) {
+        return res.status(400).json({ success: false, message: "Name, unique username, valid role, and a password of at least 8 characters are required." });
+    }
+    try {
+        const passwordHash = await bcrypt.hash(password, 12);
+        const result = db.prepare("INSERT INTO staff_users (name, username, passwordHash, role) VALUES (?, ?, ?, ?)").run(name, username, passwordHash, role);
+        const staff = db.prepare("SELECT id, name, username, role, active, lastLoginAt, createdAt, updatedAt FROM staff_users WHERE id = ?").get(result.lastInsertRowid);
+        return res.status(201).json({ success: true, staff });
+    } catch (error) {
+        return res.status(error.message.includes("UNIQUE") ? 409 : 500).json({ success: false, message: error.message.includes("UNIQUE") ? "That username is already in use." : "Unable to create staff member." });
+    }
+});
+
+app.put("/staff/:id", authenticateAdmin, async (req, res) => {
+    const id = Number(req.params.id);
+    const existing = db.prepare("SELECT * FROM staff_users WHERE id = ?").get(id);
+    if (!existing) return res.status(404).json({ success: false, message: "Staff member not found." });
+    const name = req.body?.name === undefined ? existing.name : clean(req.body.name, 100);
+    const username = req.body?.username === undefined ? existing.username : clean(req.body.username, 100);
+    const role = req.body?.role === undefined ? existing.role : clean(req.body.role, 20);
+    const active = req.body?.active === undefined ? existing.active : (req.body.active ? 1 : 0);
+    if (!name || !username || !["admin", "chef"].includes(role)) return res.status(400).json({ success: false, message: "Valid name, username, and role are required." });
+    if (req.body?.password !== undefined && String(req.body.password).length < 8) return res.status(400).json({ success: false, message: "New passwords must be at least 8 characters." });
+    if (existing.role === "admin" && existing.active && !active && db.prepare("SELECT COUNT(*) AS count FROM staff_users WHERE role = 'admin' AND active = 1").get().count <= 1) return res.status(409).json({ success: false, message: "At least one active staff administrator is required." });
+    try {
+        const passwordHash = req.body?.password === undefined ? existing.passwordHash : await bcrypt.hash(String(req.body.password), 12);
+        db.prepare("UPDATE staff_users SET name=?, username=?, passwordHash=?, role=?, active=?, updatedAt=CURRENT_TIMESTAMP WHERE id=?").run(name, username, passwordHash, role, active, id);
+        const staff = db.prepare("SELECT id, name, username, role, active, lastLoginAt, createdAt, updatedAt FROM staff_users WHERE id = ?").get(id);
+        return res.json({ success: true, staff });
+    } catch (error) {
+        return res.status(error.message.includes("UNIQUE") ? 409 : 500).json({ success: false, message: error.message.includes("UNIQUE") ? "That username is already in use." : "Unable to update staff member." });
+    }
+});
+
+app.delete("/staff/:id", authenticateAdmin, (req, res) => {
+    const staff = db.prepare("SELECT * FROM staff_users WHERE id = ?").get(Number(req.params.id));
+    if (!staff) return res.status(404).json({ success: false, message: "Staff member not found." });
+    if (staff.role === "admin" && staff.active && db.prepare("SELECT COUNT(*) AS count FROM staff_users WHERE role = 'admin' AND active = 1").get().count <= 1) return res.status(409).json({ success: false, message: "At least one active staff administrator is required." });
+    db.prepare("UPDATE staff_users SET active = 0, updatedAt = CURRENT_TIMESTAMP WHERE id = ?").run(staff.id);
+    res.json({ success: true, message: "Staff member decommissioned." });
+});
+
+app.get("/ingredients", staffOrAdmin, requireRole("admin", "chef"), (req, res) => {
+    const ingredients = db.prepare("SELECT *, CASE WHEN currentQuantity <= minimumQuantity THEN 1 ELSE 0 END AS lowStock FROM ingredients WHERE active = 1 ORDER BY name").all();
+    res.json({ success: true, ingredients });
+});
+
+app.post("/ingredients", staffOrAdmin, requireRole("admin", "chef"), (req, res) => {
+    const name = clean(req.body?.name, 100), category = clean(req.body?.category, 60), unit = clean(req.body?.unit, 30);
+    const currentQuantity = Number(req.body?.currentQuantity), minimumQuantity = Number(req.body?.minimumQuantity);
+    if (!name || !category || !unit || !validQuantity(currentQuantity) || !validQuantity(minimumQuantity)) return res.status(400).json({ success: false, message: "Name, category, unit, and non-negative quantities are required." });
+    try {
+        const result = db.prepare("INSERT INTO ingredients (name, category, unit, currentQuantity, minimumQuantity, supplier) VALUES (?, ?, ?, ?, ?, ?)").run(name, category, unit, currentQuantity, minimumQuantity, clean(req.body?.supplier, 150) || null);
+        res.status(201).json({ success: true, ingredient: db.prepare("SELECT * FROM ingredients WHERE id = ?").get(result.lastInsertRowid) });
+    } catch (error) { res.status(error.message.includes("UNIQUE") ? 409 : 500).json({ success: false, message: error.message.includes("UNIQUE") ? "That ingredient already exists." : "Unable to create ingredient." }); }
+});
+
+app.put("/ingredients/:id", staffOrAdmin, requireRole("admin", "chef"), (req, res) => {
+    const ingredient = db.prepare("SELECT * FROM ingredients WHERE id = ?").get(Number(req.params.id));
+    if (!ingredient) return res.status(404).json({ success: false, message: "Ingredient not found." });
+    const fields = { name: req.body?.name === undefined ? ingredient.name : clean(req.body.name, 100), category: req.body?.category === undefined ? ingredient.category : clean(req.body.category, 60), unit: req.body?.unit === undefined ? ingredient.unit : clean(req.body.unit, 30), currentQuantity: req.body?.currentQuantity === undefined ? ingredient.currentQuantity : Number(req.body.currentQuantity), minimumQuantity: req.body?.minimumQuantity === undefined ? ingredient.minimumQuantity : Number(req.body.minimumQuantity), supplier: req.body?.supplier === undefined ? ingredient.supplier : clean(req.body.supplier, 150) || null, active: req.body?.active === undefined ? ingredient.active : (req.body.active ? 1 : 0) };
+    if (!fields.name || !fields.category || !fields.unit || !validQuantity(fields.currentQuantity) || !validQuantity(fields.minimumQuantity)) return res.status(400).json({ success: false, message: "Valid ingredient fields are required." });
+    db.prepare("UPDATE ingredients SET name=?, category=?, unit=?, currentQuantity=?, minimumQuantity=?, supplier=?, active=?, updatedAt=CURRENT_TIMESTAMP WHERE id=?").run(fields.name, fields.category, fields.unit, fields.currentQuantity, fields.minimumQuantity, fields.supplier, fields.active, ingredient.id);
+    res.json({ success: true, ingredient: db.prepare("SELECT * FROM ingredients WHERE id = ?").get(ingredient.id) });
+});
+
+app.post("/ingredients/:id/adjustments", staffOrAdmin, requireRole("admin", "chef"), (req, res) => {
+    const ingredient = db.prepare("SELECT * FROM ingredients WHERE id = ? AND active = 1").get(Number(req.params.id));
+    const quantityChange = Number(req.body?.quantityChange), reason = clean(req.body?.reason, 200);
+    if (!ingredient) return res.status(404).json({ success: false, message: "Ingredient not found." });
+    if (!Number.isFinite(quantityChange) || !quantityChange || !reason || ingredient.currentQuantity + quantityChange < 0) return res.status(400).json({ success: false, message: "Use a non-zero adjustment, reason, and do not reduce stock below zero." });
+    const adjust = db.transaction(() => {
+        db.prepare("UPDATE ingredients SET currentQuantity=currentQuantity+?, updatedAt=CURRENT_TIMESTAMP WHERE id=?").run(quantityChange, ingredient.id);
+        db.prepare("INSERT INTO inventory_movements (ingredientId, quantityChange, reason, createdByStaffId) VALUES (?, ?, ?, ?)").run(ingredient.id, quantityChange, reason, req.staff.id);
+    });
+    adjust();
+    res.json({ success: true, ingredient: db.prepare("SELECT * FROM ingredients WHERE id = ?").get(ingredient.id) });
+});
+
+app.get("/grocery", staffOrAdmin, requireRole("admin", "chef"), (req, res) => {
+    const status = clean(req.query?.status, 20);
+    const grocery = db.prepare(`SELECT g.*, MAX(g.requiredQuantity - g.currentQuantity, 0) AS shortfall FROM grocery_items g ${status ? "WHERE g.status = ?" : ""} ORDER BY CASE g.priority WHEN 'urgent' THEN 0 WHEN 'normal' THEN 1 ELSE 2 END, g.createdAt DESC`).all(...(status ? [status] : []));
+    res.json({ success: true, grocery });
+});
+
+app.post("/grocery", staffOrAdmin, requireRole("admin", "chef"), (req, res) => {
+    const name = clean(req.body?.name, 100), unit = clean(req.body?.unit, 30), priority = clean(req.body?.priority || "normal", 20);
+    const requiredQuantity = Number(req.body?.requiredQuantity), currentQuantity = Number(req.body?.currentQuantity || 0), ingredientId = req.body?.ingredientId ? Number(req.body.ingredientId) : null;
+    if (!name || !unit || !validQuantity(requiredQuantity) || !validQuantity(currentQuantity) || !["low", "normal", "urgent"].includes(priority)) return res.status(400).json({ success: false, message: "Valid grocery details are required." });
+    const result = db.prepare("INSERT INTO grocery_items (ingredientId, name, requiredQuantity, currentQuantity, unit, priority, createdByStaffId) VALUES (?, ?, ?, ?, ?, ?, ?)").run(ingredientId, name, requiredQuantity, currentQuantity, unit, priority, req.staff.id);
+    res.status(201).json({ success: true, groceryItem: db.prepare("SELECT * FROM grocery_items WHERE id = ?").get(result.lastInsertRowid) });
+});
+
+app.put("/grocery/:id", staffOrAdmin, requireRole("admin", "chef"), (req, res) => {
+    const item = db.prepare("SELECT * FROM grocery_items WHERE id = ?").get(Number(req.params.id));
+    if (!item) return res.status(404).json({ success: false, message: "Grocery item not found." });
+    const requiredQuantity = req.body?.requiredQuantity === undefined ? item.requiredQuantity : Number(req.body.requiredQuantity), currentQuantity = req.body?.currentQuantity === undefined ? item.currentQuantity : Number(req.body.currentQuantity), priority = req.body?.priority === undefined ? item.priority : clean(req.body.priority, 20), status = req.body?.status === undefined ? item.status : clean(req.body.status, 20);
+    if (!validQuantity(requiredQuantity) || !validQuantity(currentQuantity) || !["low", "normal", "urgent"].includes(priority) || !["pending", "purchased", "received"].includes(status)) return res.status(400).json({ success: false, message: "Valid grocery fields are required." });
+    db.prepare("UPDATE grocery_items SET requiredQuantity=?, currentQuantity=?, priority=?, status=?, updatedAt=CURRENT_TIMESTAMP WHERE id=?").run(requiredQuantity, currentQuantity, priority, status, item.id);
+    res.json({ success: true, groceryItem: db.prepare("SELECT * FROM grocery_items WHERE id = ?").get(item.id) });
+});
+
+app.delete("/grocery/:id", staffOrAdmin, requireRole("admin", "chef"), (req, res) => {
+    const result = db.prepare("DELETE FROM grocery_items WHERE id = ?").run(Number(req.params.id));
+    if (!result.changes) return res.status(404).json({ success: false, message: "Grocery item not found." });
+    res.json({ success: true, message: "Grocery item removed." });
+});
+
+function kitchenBriefing(date) {
+    const reservations = db.prepare(`SELECT id, time, guests, name, specialRequest, status FROM reservations WHERE date = ? AND LOWER(status) != 'cancelled' ORDER BY time`).all(date);
+    const confirmed = reservations.filter(r => ["confirmed", "completed"].includes(String(r.status).toLowerCase()));
+    const byTime = Object.values(reservations.reduce((acc, r) => { (acc[r.time] ||= { time: r.time, guests: 0, reservations: 0 }); acc[r.time].guests += Number(r.guests); acc[r.time].reservations++; return acc; }, {}));
+    const lowStock = db.prepare("SELECT id, name, category, unit, currentQuantity, minimumQuantity FROM ingredients WHERE active=1 AND currentQuantity <= minimumQuantity ORDER BY name").all();
+    const grocery = db.prepare("SELECT *, MAX(requiredQuantity-currentQuantity,0) AS shortfall FROM grocery_items WHERE status='pending' ORDER BY CASE priority WHEN 'urgent' THEN 0 WHEN 'normal' THEN 1 ELSE 2 END").all();
+    const tasks = db.prepare("SELECT * FROM kitchen_tasks WHERE serviceDate=? AND status='pending' ORDER BY createdAt").all(date);
+    return { date, reservations, confirmedGuests: confirmed.reduce((sum, r) => sum + Number(r.guests), 0), totalGuests: reservations.reduce((sum, r) => sum + Number(r.guests), 0), byTime, lowStock, grocery, tasks, activeMenuItems: db.prepare("SELECT id, name, category FROM menu_items WHERE available=1 ORDER BY category, name").all() };
+}
+
+app.get("/chef/dashboard", staffOrAdmin, requireRole("admin", "chef"), (req, res) => {
+    const date = isValidDate(clean(req.query?.date || todayString(), 10)) ? clean(req.query?.date || todayString(), 10) : todayString();
+    res.json({ success: true, dashboard: kitchenBriefing(date) });
+});
+
+app.get("/chef/reservations", staffOrAdmin, requireRole("admin", "chef"), (req, res) => {
+    const date = clean(req.query?.date || todayString(), 10);
+    if (!isValidDate(date)) return res.status(400).json({ success: false, message: "Use a valid date." });
+    res.json({ success: true, reservations: kitchenBriefing(date).reservations });
+});
+
+app.get("/chef/menu", staffOrAdmin, requireRole("admin", "chef"), (req, res) => res.json({ success: true, menu: db.prepare("SELECT id, name, category, description, price, available FROM menu_items WHERE available=1 ORDER BY category, name").all() }));
+
+app.get("/kitchen/tasks", staffOrAdmin, requireRole("admin", "chef"), (req, res) => {
+    const date = clean(req.query?.date || todayString(), 10); if (!isValidDate(date)) return res.status(400).json({ success: false, message: "Use a valid date." });
+    res.json({ success: true, tasks: db.prepare("SELECT * FROM kitchen_tasks WHERE serviceDate=? ORDER BY status, createdAt").all(date) });
+});
+
+app.post("/kitchen/tasks", staffOrAdmin, requireRole("admin", "chef"), (req, res) => {
+    const title = clean(req.body?.title, 200), details = clean(req.body?.details, 1000) || null, serviceDate = clean(req.body?.serviceDate || todayString(), 10);
+    if (!title || !isValidDate(serviceDate)) return res.status(400).json({ success: false, message: "A task title and valid service date are required." });
+    const result = db.prepare("INSERT INTO kitchen_tasks (title, details, serviceDate, createdByStaffId) VALUES (?, ?, ?, ?)").run(title, details, serviceDate, req.staff.id);
+    res.status(201).json({ success: true, task: db.prepare("SELECT * FROM kitchen_tasks WHERE id=?").get(result.lastInsertRowid) });
+});
+
+app.put("/kitchen/tasks/:id", staffOrAdmin, requireRole("admin", "chef"), (req, res) => {
+    const task = db.prepare("SELECT * FROM kitchen_tasks WHERE id=?").get(Number(req.params.id)); if (!task) return res.status(404).json({ success: false, message: "Kitchen task not found." });
+    const status = clean(req.body?.status, 20); if (!["pending", "complete"].includes(status)) return res.status(400).json({ success: false, message: "Use pending or complete." });
+    db.prepare("UPDATE kitchen_tasks SET status=?, completedByStaffId=?, updatedAt=CURRENT_TIMESTAMP WHERE id=?").run(status, status === "complete" ? req.staff.id : null, task.id);
+    res.json({ success: true, task: db.prepare("SELECT * FROM kitchen_tasks WHERE id=?").get(task.id) });
+});
+
+app.post("/ai/kitchen/briefing", staffOrAdmin, requireRole("admin", "chef"), (req, res) => {
+    const clientKey = String(req.staff.id || req.ip || "unknown");
+    if (rateLimited(aiKitchenAttempts, clientKey, 30, 60 * 60 * 1000)) return res.status(429).json({ success: false, message: "Kitchen briefing limit reached. Try again later." });
+    const date = clean(req.body?.date || todayString(), 10); if (!isValidDate(date)) return res.status(400).json({ success: false, message: "Use a valid date." });
+    const context = kitchenBriefing(date);
+    const busiest = context.byTime.sort((a, b) => b.guests - a.guests)[0];
+    const recommendations = [
+        `Plan for ${context.confirmedGuests} confirmed covers (${context.totalGuests} non-cancelled reservations).`,
+        busiest ? `Prepare for the busiest current service window at ${busiest.time} (${busiest.guests} guests).` : "No service windows are currently booked.",
+        context.lowStock.length ? `${context.lowStock.length} ingredient${context.lowStock.length === 1 ? " is" : "s are"} at or below minimum stock.` : "No active ingredients are below their minimum stock.",
+        context.grocery.length ? `${context.grocery.length} grocery item${context.grocery.length === 1 ? " requires" : "s require"} follow-up.` : "No pending grocery items require follow-up."
+    ];
+    res.json({ success: true, assistant: { role: "Royal Table kitchen operations assistant", permittedData: ["reservations", "active menu", "ingredients", "inventory", "grocery", "kitchen tasks"], safeguards: ["server-side context only", "rate limited", "read-only recommendations", "no direct destructive actions"], context, recommendations } });
+});
 
 app.get(
     "/",

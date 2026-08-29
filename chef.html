@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Royal Table | Chef Operations</title>
+  <style>
+    :root { color-scheme: dark; --bg:#14110e; --panel:#211b16; --text:#f7efe3; --muted:#c9b9a5; --gold:#d7a64a; --danger:#e67b70; }
+    * { box-sizing:border-box } body { margin:0; background:var(--bg); color:var(--text); font:16px system-ui,sans-serif } main { max-width:1200px; margin:auto; padding:24px }
+    h1,h2 { font-family:Georgia,serif } h1 { margin:0 } .muted { color:var(--muted) } .card { background:var(--panel); border:1px solid #3a3028; border-radius:12px; padding:18px; margin:14px 0 }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px } .metric { font-size:2rem; color:var(--gold); font-weight:700 }
+    input,select,button { padding:10px; border-radius:7px; border:1px solid #665442; font:inherit } input,select { background:#120f0c; color:var(--text) } button { cursor:pointer; background:var(--gold); color:#20170b; font-weight:700 } button.secondary { background:transparent; color:var(--text) }
+    table { width:100%; border-collapse:collapse } th,td { text-align:left; padding:9px; border-bottom:1px solid #40352c; vertical-align:top } .warn { color:var(--danger) } .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center } .hidden { display:none }
+  </style>
+</head>
+<body>
+<main>
+  <section id="loginPanel" class="card" style="max-width:440px;margin:8vh auto">
+    <h1>Chef Operations</h1><p class="muted">Royal Table kitchen workspace</p>
+    <form id="loginForm" class="grid"><input id="username" required autocomplete="username" placeholder="Username"><input id="password" required type="password" autocomplete="current-password" placeholder="Password"><button>Sign in</button></form>
+    <p id="loginMessage" class="warn"></p>
+  </section>
+  <section id="appPanel" class="hidden">
+    <div class="row"><div><h1>Kitchen Dashboard</h1><div id="greeting" class="muted"></div></div><span style="flex:1"></span><input id="serviceDate" type="date"><button class="secondary" id="refresh">Refresh</button><button class="secondary" id="logout">Logout</button></div>
+    <div class="grid"><div class="card"><span class="muted">Confirmed covers</span><div id="confirmed" class="metric">—</div></div><div class="card"><span class="muted">All active covers</span><div id="covers" class="metric">—</div></div><div class="card"><span class="muted">Low-stock warnings</span><div id="lowStockCount" class="metric">—</div></div><div class="card"><span class="muted">Pending grocery items</span><div id="groceryCount" class="metric">—</div></div></div>
+    <div class="grid"><section class="card"><h2>Service workload</h2><div id="workload"></div></section><section class="card"><h2>AI kitchen briefing</h2><div id="briefing" class="muted">Loading operational context…</div></section></div>
+    <section class="card"><h2>Reservations and special requests</h2><div id="reservations"></div></section>
+    <div class="grid"><section class="card"><h2>Low stock</h2><div id="lowStock"></div></section><section class="card"><h2>Grocery requirements</h2><div id="grocery"></div></section></div>
+    <section class="card"><h2>Preparation tasks</h2><form id="taskForm" class="row"><input id="taskTitle" required maxlength="200" placeholder="Add a preparation task"><button>Add task</button></form><div id="tasks"></div></section>
+  </section>
+</main>
+<script>
+const API_URL = "https://royal-table-api.onrender.com";
+let token = localStorage.getItem("royalTableStaffToken");
+let staff = JSON.parse(localStorage.getItem("royalTableStaff") || "null");
+const $ = id => document.getElementById(id);
+function today() { return new Date().toISOString().slice(0,10); }
+function escapeHtml(value) { const el=document.createElement("div"); el.textContent=value ?? ""; return el.innerHTML; }
+async function api(path, options={}) { const response=await fetch(API_URL+path,{...options,headers:{"Content-Type":"application/json",Authorization:`Bearer ${token}`,...(options.headers||{})}}); const data=await response.json().catch(()=>({success:false,message:"Invalid server response."})); if(!response.ok) throw new Error(data.message||"Request failed."); return data; }
+function list(items, render, empty="Nothing to show.") { return items.length ? `<table><tbody>${items.map(render).join("")}</tbody></table>` : `<p class="muted">${empty}</p>`; }
+async function load() {
+  const date=$("serviceDate").value; const {dashboard:d}=await api(`/chef/dashboard?date=${encodeURIComponent(date)}`);
+  $("confirmed").textContent=d.confirmedGuests; $("covers").textContent=d.totalGuests; $("lowStockCount").textContent=d.lowStock.length; $("groceryCount").textContent=d.grocery.length;
+  $("workload").innerHTML=list(d.byTime,x=>`<tr><td><strong>${escapeHtml(x.time)}</strong></td><td>${x.guests} covers</td><td>${x.reservations} reservations</td></tr>`,"No reservations for this service date.");
+  $("reservations").innerHTML=list(d.reservations,r=>`<tr><td><strong>${escapeHtml(r.time)}</strong><br><span class="muted">${escapeHtml(r.status)}</span></td><td>${r.guests} guests</td><td>${escapeHtml(r.name)}${r.specialRequest?`<br><span class="warn">${escapeHtml(r.specialRequest)}</span>`:""}</td></tr>`,"No reservations for this service date.");
+  $("lowStock").innerHTML=list(d.lowStock,i=>`<tr><td>${escapeHtml(i.name)}</td><td class="warn">${i.currentQuantity} / ${i.minimumQuantity} ${escapeHtml(i.unit)}</td></tr>`,"All active ingredients are above minimum stock.");
+  $("grocery").innerHTML=list(d.grocery,i=>`<tr><td>${escapeHtml(i.name)}<br><span class="muted">${escapeHtml(i.priority)}</span></td><td>${i.shortfall} ${escapeHtml(i.unit)} shortfall</td><td>${escapeHtml(i.status)}</td></tr>`,"No pending grocery items.");
+  $("tasks").innerHTML=list(d.tasks,t=>`<tr><td>${escapeHtml(t.title)}</td><td><button class="secondary" onclick="completeTask(${t.id})">Complete</button></td></tr>`,"No pending preparation tasks.");
+  const ai=await api("/ai/kitchen/briefing",{method:"POST",body:JSON.stringify({date})}); $("briefing").innerHTML=`<ul>${ai.assistant.recommendations.map(r=>`<li>${escapeHtml(r)}</li>`).join("")}</ul>`;
+}
+async function completeTask(id) { await api(`/kitchen/tasks/${id}`,{method:"PUT",body:JSON.stringify({status:"complete"})}); load(); }
+$("loginForm").onsubmit=async e=>{e.preventDefault();try{const data=await fetch(API_URL+"/staff/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:$("username").value,password:$("password").value})}).then(r=>r.json());if(!data.success)throw new Error(data.message);token=data.token;staff=data.staff;localStorage.setItem("royalTableStaffToken",token);localStorage.setItem("royalTableStaff",JSON.stringify(staff));showApp();}catch(error){$("loginMessage").textContent=error.message;}};
+$("taskForm").onsubmit=async e=>{e.preventDefault();await api("/kitchen/tasks",{method:"POST",body:JSON.stringify({title:$("taskTitle").value,serviceDate:$("serviceDate").value})});$("taskTitle").value="";load();};
+$("refresh").onclick=()=>load().catch(showError); $("serviceDate").onchange=()=>load().catch(showError); $("logout").onclick=()=>{localStorage.removeItem("royalTableStaffToken");localStorage.removeItem("royalTableStaff");location.reload();};
+function showError(e){alert(e.message);if(/session|Authentication/i.test(e.message))$("logout").click();} function showApp(){if(staff?.role!=="chef"&&staff?.role!=="admin"){return;}$("loginPanel").classList.add("hidden");$("appPanel").classList.remove("hidden");$("greeting").textContent=`Signed in as ${staff.name} (${staff.role})`;$("serviceDate").value=today();load().catch(showError);}
+if(token&&staff)showApp();
+</script>
+</body>
+</html>
