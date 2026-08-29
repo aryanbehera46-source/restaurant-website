@@ -18,9 +18,9 @@
 
     <link
         rel="stylesheet"
-        href="style.css?v=customer-final-20260829"
+        href="style.css?v=customer-editorial-20260829"
     >
-    <link rel="stylesheet" href="ui.css?v=customer-final-20260829">
+    <link rel="stylesheet" href="ui.css?v=customer-editorial-20260829">
 </head>
 
 <body>
@@ -49,7 +49,7 @@
                 About
             </a>
 
-            <a href="#reservation">
+            <a href="#contact">
                 Contact
             </a>
 
@@ -85,9 +85,9 @@
             </h1>
 
             <p class="hero-description">
-                Seasonal ingredients, refined flavors,
-                and an atmosphere designed for
-                unforgettable evenings.
+                Indian fire, seasonal produce and warm hospitality—
+                brought together in a dining room made for
+                long conversations and memorable evenings.
             </p>
 
             <a
@@ -99,6 +99,21 @@
 
         </div>
 
+    </section>
+
+    <section class="experience-strip" aria-label="Royal Table experience">
+        <div class="experience-item">
+            <strong>Open-fire kitchen</strong>
+            <span>Tandoor-led cooking, finished to order</span>
+        </div>
+        <div class="experience-item">
+            <strong>Seasonal menus</strong>
+            <span>Familiar Indian flavours, thoughtfully refined</span>
+        </div>
+        <div class="experience-item">
+            <strong>Gracious service</strong>
+            <span>Personal attention from arrival to last course</span>
+        </div>
     </section>
 
 
@@ -123,9 +138,9 @@
             </h2>
 
             <p>
-                Carefully crafted dishes made with
-                seasonal ingredients and a touch
-                of culinary artistry.
+                The dishes that define our kitchen: smoke from the
+                tandoor, slow-simmered gravies and ingredients treated
+                with patience and restraint.
             </p>
 
         </div>
@@ -187,28 +202,78 @@
             </h2>
 
             <p>
-                Royal Table brings together seasonal
-                ingredients, thoughtful cooking and
-                warm hospitality in an elegant setting
-                designed for unforgettable evenings.
+                Royal Table began with a simple belief: Indian dining
+                can feel celebratory without feeling formal. Our menu
+                draws from the generosity of regional kitchens, then
+                brings those flavours into a modern dining room with
+                clarity, balance and care.
             </p>
 
             <p>
-                From intimate dinners to celebrations
-                with friends and family, every detail
-                is carefully considered—from the
-                kitchen to the table.
+                The tandoor is at the heart of our kitchen. Marinades
+                are prepared in-house, gravies develop slowly, breads
+                arrive hot from the clay oven, and every plate is
+                finished only when the table is ready.
             </p>
 
+            <div class="about-principles" aria-label="Our approach">
+                <div><strong>01</strong><span>Cooked fresh, never rushed</span></div>
+                <div><strong>02</strong><span>Hospitality with genuine warmth</span></div>
+                <div><strong>03</strong><span>Celebrations made personal</span></div>
+            </div>
+
             <a
-                href="#reservation"
+                href="#full-menu"
                 class="about-button"
             >
-                Discover Our Story
+                Explore Our Menu
             </a>
 
         </div>
 
+    </section>
+
+
+    <!-- ==================================================
+         CONTACT
+    ================================================== -->
+
+    <section class="contact" id="contact">
+        <div class="contact-intro">
+            <p class="eyebrow">PLAN YOUR VISIT</p>
+            <h2>Everything You Need Before You Arrive</h2>
+            <p>
+                Whether it is dinner for two, a family celebration or
+                a private gathering, our team will help shape the table
+                around your occasion.
+            </p>
+        </div>
+
+        <div class="contact-grid">
+            <article class="contact-card">
+                <span class="contact-number">01</span>
+                <h3>Dining Hours</h3>
+                <p>Lunch · 12:00 PM–3:30 PM</p>
+                <p>Dinner · 6:00 PM–11:00 PM</p>
+                <small>Open daily. Last seating is 45 minutes before close.</small>
+            </article>
+
+            <article class="contact-card">
+                <span class="contact-number">02</span>
+                <h3>Reservations</h3>
+                <p>Choose your preferred date, time and party size online.</p>
+                <p>For dietary needs or celebrations, add a note with your request.</p>
+                <a href="#reservation">Request a table</a>
+            </article>
+
+            <article class="contact-card">
+                <span class="contact-number">03</span>
+                <h3>Private Dining</h3>
+                <p>Host intimate celebrations and group dinners with a menu shaped for your table.</p>
+                <p>Share the occasion in your reservation note and our host will follow up.</p>
+                <a href="#reservation">Plan your occasion</a>
+            </article>
+        </div>
     </section>
 
 
@@ -826,16 +891,18 @@
             grid.innerHTML = "";
 
 
-            const signatureItems =
-                allMenuItems
-                    .filter(
-                        item =>
-                            Number(item.available) === 1
-                    )
-                    .slice(
-                        0,
-                        3
-                    );
+            const availableSignatureItems = allMenuItems.filter(
+                item => Number(item.available) === 1
+            );
+
+            const categoryItems = category => availableSignatureItems.filter(
+                item => String(item.category || "").trim().toLowerCase() === category.toLowerCase()
+            );
+
+            const signatureItems = [
+                ...categoryItems("Tandoor").slice(0, 2),
+                ...categoryItems("Main Course").slice(0, 1)
+            ];
 
 
             if (
@@ -884,6 +951,10 @@
                         >
 
                         <div class="dish-info">
+
+                            <small class="dish-category">
+                                ${escapeHtml(item.category)}
+                            </small>
 
                             <h3>
                                 ${escapeHtml(item.name)}
@@ -2038,7 +2109,7 @@
 
     </script>
 
-<script src="ui.js?v=customer-final-20260829"></script>
+<script src="ui.js?v=customer-editorial-20260829"></script>
 </body>
 
 </html>
