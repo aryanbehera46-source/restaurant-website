@@ -1542,7 +1542,7 @@ app.get(
                 "Royal Table backend is running!",
 
             version:
-                "Day 11"
+                "final-fix-20260829"
 
         });
 
