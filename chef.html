@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Royal Table | Chef Operations</title>
-  <link rel="stylesheet" href="ui.css">
+  <link rel="stylesheet" href="ui.css?v=premium-20260829">
   <style>
     :root { color-scheme: dark; --bg:#14110e; --panel:#211b16; --text:#f7efe3; --muted:#c9b9a5; --gold:#d7a64a; --danger:#e67b70; }
     * { box-sizing:border-box } body { margin:0; background:var(--bg); color:var(--text); font:16px system-ui,sans-serif } main { max-width:1200px; margin:auto; padding:24px }
@@ -69,6 +69,6 @@ $("refresh").onclick=()=>load().catch(showError); $("serviceDate").onchange=()=>
 function showError(e){alert(e.message);if(/session|Authentication/i.test(e.message))$("logout").click();} function showApp(){if(staff?.role!=="chef"&&staff?.role!=="admin"){return;}$("loginPanel").classList.add("hidden");$("appPanel").classList.remove("hidden");$("greeting").textContent=`Signed in as ${staff.name} (${staff.role})`;$("serviceDate").value=today();load().catch(showError);}
 if(token&&staff)showApp();
 </script>
-<script src="ui.js"></script>
+<script src="ui.js?v=premium-20260829"></script>
 </body>
 </html>
