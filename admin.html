@@ -10,7 +10,7 @@
 >
 
 <title>Royal Table — Admin Dashboard</title>
-<link rel="stylesheet" href="ui.css?v=day18-world-class-20260829">
+<link rel="stylesheet" href="ui.css?v=admin-operations-final-20260830">
 
 <style>
 
@@ -1411,6 +1411,11 @@ tr:hover{
 <style>
 .order-workspace{display:grid;gap:14px}.order-builder,.order-card{border:1px solid #d7a64a55;border-radius:10px;padding:14px;background:#fffaf4}.order-builder-row{display:grid;grid-template-columns:minmax(180px,2fr) 90px minmax(160px,1fr) auto;gap:8px}.order-line{display:grid;grid-template-columns:1fr auto auto;gap:10px;padding:8px 0;border-bottom:1px solid #eadfce}.order-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.order-status{text-transform:uppercase;font-size:12px;font-weight:800;color:#8a5d10}.order-total{font-size:18px;font-weight:800;text-align:right}@media(max-width:700px){.order-builder-row{grid-template-columns:1fr}.order-line{grid-template-columns:1fr}}
 .billing-controls label,.payment-controls label{display:flex;align-items:center;gap:5px}.billing-controls input,.payment-controls input{width:90px}@media print{body *{visibility:hidden}.reservation-modal,.reservation-modal *{visibility:visible}.reservation-modal{position:absolute;inset:0;background:#fff}.modal-close,.order-builder,.order-actions,.bill-editor{display:none!important}.order-card{break-inside:avoid;box-shadow:none}.modal-content{max-height:none;overflow:visible;box-shadow:none}}
+.billing-section{padding:30px;border:1px solid #e1d7c9;border-radius:16px;background:#fff;box-shadow:0 12px 30px rgba(51,39,25,.07)}
+.operations-mini-list{display:grid;margin:18px 0;border-top:1px solid #e4dacd}.operations-mini-list div{display:flex;justify-content:space-between;gap:14px;padding:10px 0;border-bottom:1px solid #eee5da;color:#776d64;font-size:12px}.operations-mini-list strong{color:#30271f;text-transform:capitalize}.operations-grid{align-items:stretch}.operations-card{display:flex;flex-direction:column}.operations-card .operations-link{margin-top:auto}
+.modal-box{max-width:1120px!important}.modal-header{background:#1c1814!important}.modal-header h2{color:#fff!important}.modal-body{background:#f7f3ed!important}.details-grid{grid-template-columns:repeat(4,1fr)!important;gap:12px!important}.detail-item{padding:15px!important;border:1px solid #e5dbce!important;border-radius:10px!important;background:#fff!important;box-shadow:none!important}.detail-item.full-width{grid-column:1/-1}.order-builder{background:#fbf8f3!important;border-color:#ded1bf!important}.order-card{padding:0!important;overflow:hidden;border:1px solid #ded3c5!important;border-radius:13px!important;background:#fff!important}.order-card-header{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:18px 20px;background:#211c18;color:#fff}.order-card-header>div{display:flex;align-items:center;gap:12px}.order-reference{color:#efbd63;font-size:13px;font-weight:800;letter-spacing:.06em}.payment-status{padding:5px 8px;border-radius:999px;background:#f1e8dc;color:#5d5145;font-size:11px;font-weight:800;text-transform:uppercase}.customer-preorder-badge{padding:10px 20px;background:#fff4d8;color:#835b11;font-size:12px;font-weight:800}.order-lines-heading,.order-line{display:grid;grid-template-columns:1fr 160px 120px;gap:14px;padding:11px 20px}.order-lines-heading{color:#83776a;background:#faf7f2;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}.order-line{border-bottom:1px solid #eee6dc!important}.order-line>:last-child{text-align:right}.order-financial-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:#e6ddd2}.order-financial-strip span{padding:12px;background:#faf7f2;color:#7a6d61;font-size:11px}.order-financial-strip strong{display:block;margin-top:4px;color:#2f271f;font-size:14px}.order-controls{margin:16px 20px;border:1px solid #dfd4c7;border-radius:9px}.order-controls summary{padding:12px 14px;cursor:pointer;color:#6b5e51;font-size:12px;font-weight:800}.order-controls>div{padding:0 14px 14px}.order-balance,.reservation-financial-total{display:flex;justify-content:flex-end;gap:22px;padding:14px 20px;background:#f6f1e9;color:#65594d}.reservation-financial-total{margin-top:14px;border-radius:10px}.kitchen-note{margin:14px 20px;color:#65594d}
+.billing-summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:22px 0}.billing-summary-grid article{padding:18px;border:1px solid #e7ddd0;border-radius:12px;background:#fbf8f3}.billing-summary-grid span,.ledger-order span,.cell-subline{display:block;color:#7a7066;font-size:12px;line-height:1.45}.billing-summary-grid strong{display:block;margin-top:8px;color:#1f1a16;font-size:23px}.order-ledger{display:grid;gap:10px}.ledger-order{display:grid;grid-template-columns:140px 1.1fr 1.4fr 130px 150px auto;gap:18px;padding:18px;align-items:center;border:1px solid #e7ddd0;border-radius:12px;background:#fff}.ledger-order>div{min-width:0}.ledger-order strong{color:#211c18}.ledger-order div:nth-child(3) span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ledger-identity strong,.record-id{color:#98631b!important;font-variant-numeric:tabular-nums;letter-spacing:.03em}.ledger-money{text-align:right}.ledger-empty,.operations-relogin{padding:28px;text-align:center;border:1px dashed #d8cbb9;border-radius:12px;background:#fbf8f3}.cell-subline{margin-top:5px}.table-wrapper{border:1px solid #e4dacd!important;border-radius:14px!important}.table-wrapper table{min-width:1080px!important}.table-wrapper th,.table-wrapper td{padding:15px 16px!important}.table-wrapper tbody tr{height:auto!important}.table-wrapper .action-buttons{flex-wrap:nowrap;align-items:center}.table-wrapper .action-buttons button,.row-menu summary{min-height:36px!important;padding:8px 11px!important;font-size:12px!important;white-space:nowrap}.row-menu{position:relative}.row-menu summary{display:grid;place-items:center;border:1px solid #d6c8b6;border-radius:8px;cursor:pointer;list-style:none;color:#65594c;background:#fff}.row-menu[open] div{position:absolute;right:0;z-index:20;display:grid;min-width:120px;padding:8px;gap:6px;border:1px solid #ded3c5;border-radius:10px;background:#fff;box-shadow:0 14px 32px rgba(42,31,20,.16)}
+@media(max-width:1200px){.billing-summary-grid{grid-template-columns:repeat(2,1fr)}.ledger-order{grid-template-columns:1fr 1fr}.ledger-order button{justify-self:start}.details-grid{grid-template-columns:repeat(2,1fr)!important}}@media(max-width:620px){.billing-summary-grid,.ledger-order,.details-grid{grid-template-columns:1fr!important}.billing-section{padding:20px}.ledger-money{text-align:left}.order-card-header,.order-card-header>div,.order-balance,.reservation-financial-total{align-items:flex-start;flex-direction:column}.order-lines-heading{display:none}.order-line{grid-template-columns:1fr}.order-line>:last-child{text-align:left}.order-financial-strip{grid-template-columns:1fr 1fr}}
 </style>
 
 </head>
@@ -1511,8 +1516,8 @@ tr:hover{
 
     <nav class="admin-nav" aria-label="Administration sections">
         <a href="#overview" data-view="overview">Overview</a>
-        <a href="#reservations" data-view="reservations">Reservations &amp; Orders</a>
-        <a href="#billing" data-view="billing">Billing &amp; Payments</a>
+        <a href="#reservations" data-view="reservations">Reservations</a>
+        <a href="#billing" data-view="billing">Orders &amp; Billing</a>
         <a href="#menu" data-view="menu">Menu</a>
         <a href="#operations" data-view="operations">Staff · Kitchen · Stock</a>
         <a href="#analytics" data-view="analytics">Analytics &amp; AI</a>
@@ -1982,23 +1987,15 @@ tr:hover{
 
                 <tr>
 
-                    <th>ID</th>
+                    <th>Booking</th>
 
-                    <th>Name</th>
+                    <th>Guest</th>
 
-                    <th>Email</th>
+                    <th>Party</th>
 
-                    <th>Date</th>
+                    <th>Pre-order / KOT</th>
 
-                    <th>Time</th>
-
-                    <th>Guests</th>
-
-                    <th>Phone</th>
-
-                    <th>Bill</th>
-
-                    <th>Special Request</th>
+                    <th>Financials</th>
 
                     <th>Status</th>
 
@@ -2025,6 +2022,23 @@ tr:hover{
         </div>
 
     </div>
+
+    <section class="billing-section" id="billing">
+        <div class="menu-heading">
+            <div class="menu-heading-copy">
+                <h2>Order &amp; Payment Ledger</h2>
+                <p>Every dining order, KOT stage, server-calculated total, payment position and reservation reference in one place.</p>
+            </div>
+            <button type="button" onclick="loadOrderLedger()">Refresh ledger</button>
+        </div>
+        <div class="billing-summary-grid">
+            <article><span>Orders</span><strong id="ledgerOrderCount">—</strong></article>
+            <article><span>Billed</span><strong id="ledgerBilled">—</strong></article>
+            <article><span>Received</span><strong id="ledgerPaid">—</strong></article>
+            <article><span>Outstanding</span><strong id="ledgerOutstanding">—</strong></article>
+        </div>
+        <div id="orderLedger" class="order-ledger"><p class="muted">Loading order ledger…</p></div>
+    </section>
 
 
     <!-- ==================================================
@@ -2143,6 +2157,7 @@ tr:hover{
                 <p>Manage administrator and chef accounts, access status, and team credentials.</p>
                 <span class="metric" id="staffCount">—</span>
                 <span class="operations-status" id="staffStatus">Loading team…</span><br>
+                <div class="operations-mini-list" id="staffMonitor"></div>
                 <a class="operations-link" href="staff.html">Open Staff Management →</a>
             </article>
 
@@ -2151,6 +2166,7 @@ tr:hover{
                 <p>Monitor today’s service workload, confirmed covers, preparation tasks, and AI briefing availability.</p>
                 <span class="metric" id="kitchenCovers">—</span>
                 <span class="operations-status" id="kitchenStatus">Loading service…</span><br>
+                <div class="operations-mini-list" id="kitchenMonitor"></div>
                 <a class="operations-link" href="chef.html" target="_blank" rel="noopener">Open Separate Chef Portal →</a>
             </article>
 
@@ -2159,6 +2175,7 @@ tr:hover{
                 <p>Review active ingredients and low-stock warnings without entering the chef workspace.</p>
                 <span class="metric" id="inventoryCount">—</span>
                 <span class="operations-status" id="inventoryStatus">Loading inventory…</span>
+                <div class="operations-mini-list" id="inventoryMonitor"></div>
             </article>
 
             <article class="operations-card" id="groceryCard">
@@ -2166,6 +2183,7 @@ tr:hover{
                 <p>Track pending purchase requirements, urgent shortfalls, and procurement progress.</p>
                 <span class="metric" id="groceryCount">—</span>
                 <span class="operations-status" id="groceryStatus">Loading grocery list…</span>
+                <div class="operations-mini-list" id="groceryMonitor"></div>
             </article>
         </div>
     </section>
@@ -2898,6 +2916,8 @@ function showDashboard(){
 
     loadReservations();
 
+    loadOrderLedger();
+
     loadMenu();
 
     loadOperations();
@@ -2912,6 +2932,8 @@ function showDashboard(){
 function refreshDashboard(){
 
     loadReservations();
+
+    loadOrderLedger();
 
     loadMenu();
 
@@ -2986,6 +3008,37 @@ function getAuthHeaders(){
 
 }
 
+async function loadOrderLedger(){
+    const target=document.getElementById("orderLedger");
+    if(!target)return;
+    try{
+        const response=await fetch(`${API_URL}/orders`,{headers:getAuthHeaders()});
+        const data=await response.json();
+        if(!response.ok||!data.success)throw new Error(data.message||"Unable to load orders.");
+        const orders=Array.isArray(data.orders)?data.orders:[];
+        const billed=orders.filter(o=>o.status!=="cancelled").reduce((sum,o)=>sum+Number(o.grandTotal||0),0);
+        const paid=orders.filter(o=>o.status!=="cancelled").reduce((sum,o)=>sum+Number(o.amountPaid||0),0);
+        document.getElementById("ledgerOrderCount").textContent=orders.length;
+        document.getElementById("ledgerBilled").textContent=formatCurrency(billed);
+        document.getElementById("ledgerPaid").textContent=formatCurrency(paid);
+        document.getElementById("ledgerOutstanding").textContent=formatCurrency(Math.max(0,billed-paid));
+        target.innerHTML=orders.length?orders.map(order=>`
+            <article class="ledger-order">
+                <div class="ledger-identity">
+                    <strong>ORD-${String(order.id).padStart(4,"0")}</strong>
+                    <span>RSV-${String(order.reservationId).padStart(4,"0")} · Course ${order.orderNumber}</span>
+                </div>
+                <div><strong>${escapeHtml(order.guestName)}</strong><span>${escapeHtml(order.date)} · ${escapeHtml(order.time)} · ${order.guests} guests</span></div>
+                <div><strong>${order.items.reduce((sum,item)=>sum+Number(item.quantity),0)} items</strong><span>${order.items.map(item=>`${item.quantity}× ${escapeHtml(item.itemName)}`).join(" · ")}</span></div>
+                <div><span class="order-status">${escapeHtml(order.status)}</span><span>${escapeHtml(String(order.paymentStatus).replace("_"," "))}</span></div>
+                <div class="ledger-money"><strong>${formatCurrency(order.grandTotal)}</strong><span>Paid ${formatCurrency(order.amountPaid)} · Due ${formatCurrency(order.remainingBalance)}</span></div>
+                <button type="button" onclick="openReservationModal(${order.reservationId})">Open</button>
+            </article>`).join(""):"<div class='ledger-empty'><strong>No orders recorded</strong><p>Customer pre-orders and staff-created orders will appear here.</p></div>";
+    }catch(error){
+        target.innerHTML=`<div class="operations-relogin"><strong>Order ledger unavailable</strong><p>${escapeHtml(error.message)}</p></div>`;
+    }
+}
+
 
 /* ==================================================
    OPERATIONAL OVERSIGHT
@@ -3048,21 +3101,35 @@ async function loadOperations(){
         document.getElementById("staffCount").textContent = activeStaff.length;
         document.getElementById("staffStatus").textContent =
             `${staffData.staff.length} total account${staffData.staff.length === 1 ? "" : "s"}; ${activeStaff.length} active`;
+        document.getElementById("staffMonitor").innerHTML = activeStaff.length
+            ? activeStaff.slice(0,4).map(member => `<div><span>${escapeHtml(member.name)}</span><strong>${escapeHtml(member.role)}</strong></div>`).join("")
+            : `<div><span>No active team accounts</span><strong>Setup required</strong></div>`;
 
         document.getElementById("kitchenCovers").textContent =
             kitchenData.dashboard.confirmedGuests;
         document.getElementById("kitchenStatus").textContent =
             `confirmed covers today; ${kitchenData.dashboard.tasks.length} pending task${kitchenData.dashboard.tasks.length === 1 ? "" : "s"}`;
+        const kot = kitchenData.dashboard.kotStatusCounts || {};
+        document.getElementById("kitchenMonitor").innerHTML = `
+            <div><span>New KOTs</span><strong>${Number(kot.new || 0)}</strong></div>
+            <div><span>Preparing</span><strong>${Number(kot.preparing || 0)}</strong></div>
+            <div><span>Ready</span><strong>${Number(kot.ready || 0)}</strong></div>`;
 
         document.getElementById("inventoryCount").textContent =
             inventoryData.ingredients.length;
         document.getElementById("inventoryStatus").textContent =
             `${lowStock.length} low-stock warning${lowStock.length === 1 ? "" : "s"}`;
+        document.getElementById("inventoryMonitor").innerHTML = lowStock.length
+            ? lowStock.slice(0,4).map(item => `<div><span>${escapeHtml(item.name)}</span><strong>${item.currentQuantity}/${item.minimumQuantity} ${escapeHtml(item.unit)}</strong></div>`).join("")
+            : `<div><span>Stock position</span><strong>Healthy</strong></div>`;
 
         document.getElementById("groceryCount").textContent =
             pendingGrocery.length;
         document.getElementById("groceryStatus").textContent =
             `${urgentGrocery.length} urgent purchase requirement${urgentGrocery.length === 1 ? "" : "s"}`;
+        document.getElementById("groceryMonitor").innerHTML = pendingGrocery.length
+            ? pendingGrocery.slice(0,4).map(item => `<div><span>${escapeHtml(item.name)}</span><strong>${escapeHtml(item.priority)}</strong></div>`).join("")
+            : `<div><span>Purchase queue</span><strong>Clear</strong></div>`;
 
     }catch(error){
 
@@ -3343,65 +3410,17 @@ function renderReservations(){
 
             row.innerHTML = `
 
-                <td>
-                    ${escapeHtml(
-                        reservation.id
-                    )}
-                </td>
+                <td><strong class="record-id">RSV-${String(reservation.id).padStart(4,"0")}</strong><span class="cell-subline">${escapeHtml(reservation.date)} · ${escapeHtml(reservation.time)}</span></td>
 
-                <td>
-                    ${escapeHtml(
-                        reservation.name
-                    )}
-                </td>
+                <td><strong>${escapeHtml(reservation.name)}</strong><span class="cell-subline">${escapeHtml(reservation.email)} · ${escapeHtml(reservation.phone)}</span></td>
 
-                <td>
-                    ${escapeHtml(
-                        reservation.email
-                    )}
-                </td>
+                <td><strong>${escapeHtml(reservation.guests)} guests</strong><span class="cell-subline">${reservation.specialRequest ? escapeHtml(reservation.specialRequest) : "No special request"}</span></td>
 
-                <td>
-                    ${escapeHtml(
-                        reservation.date
-                    )}
-                </td>
+                <td>${Number(reservation.orderCount) > 0
+                    ? `<strong>${Number(reservation.orderCount)} order${Number(reservation.orderCount) === 1 ? "" : "s"}</strong><span class="cell-subline">${Number(reservation.draftOrderCount) > 0 ? `${Number(reservation.draftOrderCount)} draft awaiting review` : Number(reservation.activeKotCount) > 0 ? `${Number(reservation.activeKotCount)} active KOT` : "Order recorded"}</span>`
+                    : `<span class="muted">No order yet</span>`}</td>
 
-                <td>
-                    ${escapeHtml(
-                        reservation.time
-                    )}
-                </td>
-
-                <td>
-                    ${escapeHtml(
-                        reservation.guests
-                    )}
-                </td>
-
-                <td>
-                    ${escapeHtml(
-                        reservation.phone
-                    )}
-                </td>
-
-                <td>
-                    ${formatCurrency(
-                        bill
-                    )}
-                </td>
-
-                <td>
-                    ${
-                        reservation.specialRequest
-                        ?
-                        escapeHtml(
-                            reservation.specialRequest
-                        )
-                        :
-                        "-"
-                    }
-                </td>
+                <td><strong>${formatCurrency(bill)}</strong><span class="cell-subline">Paid ${formatCurrency(Number(reservation.amountPaid || 0))}</span></td>
 
                 <td>
                     ${getStatusBadge(
@@ -3456,32 +3475,13 @@ function renderReservations(){
                             ""
                         }
 
-                        ${
-                            status !== "Cancelled" &&
-                            status !== "Completed"
-                            ?
-                            `
-                            <button
-                                class="cancel-button"
-                                onclick="quickCancel(
-                                    ${reservation.id}
-                                )"
-                            >
-                                Cancel
-                            </button>
-                            `
-                            :
-                            ""
-                        }
-
-                        <button
-                            class="delete-button"
-                            onclick="deleteReservation(
-                                ${reservation.id}
-                            )"
-                        >
-                            Delete
-                        </button>
+                        <details class="row-menu">
+                            <summary>More</summary>
+                            <div>
+                                ${status !== "Cancelled" && status !== "Completed" ? `<button class="cancel-button" onclick="quickCancel(${reservation.id})">Cancel</button>` : ""}
+                                <button class="delete-button" onclick="deleteReservation(${reservation.id})">Delete</button>
+                            </div>
+                        </details>
 
                     </div>
 
@@ -4501,7 +4501,7 @@ async function saveOrderDraft(){
     const path = editingOrderId ? `/orders/${editingOrderId}` : `/reservations/${currentReservationId}/orders`;
     await orderApi(path, {method:editingOrderId ? "PUT" : "POST", body});
     orderDraftItems=[]; editingOrderId=null; document.getElementById("orderNotes").value=""; renderOrderDraft();
-    await loadReservationOrders(); await loadReservations(); showToast("Itemized order saved.", "success");
+    await loadReservationOrders(); await loadReservations(); await loadOrderLedger(); showToast("Itemized order saved.", "success");
 }
 
 function editOrder(id){
@@ -4511,19 +4511,19 @@ function editOrder(id){
     document.getElementById("orderNotes").value=order.notes||""; renderOrderDraft();
 }
 
-async function submitOrder(id){ await orderApi(`/orders/${id}/submit`,{method:"POST",body:"{}"}); await loadReservationOrders(); showToast("KOT sent to Chef Portal.","success"); }
+async function submitOrder(id){ await orderApi(`/orders/${id}/submit`,{method:"POST",body:"{}"}); await loadReservationOrders(); await loadReservations(); await loadOrderLedger(); showToast("KOT sent to Chef Portal.","success"); }
 
 async function updateBilling(id){
     const value=name=>Number(document.getElementById(`${name}-${id}`).value);
     await orderApi(`/orders/${id}/billing`,{method:"PUT",body:JSON.stringify({discountPercent:value("discount"),taxRate:value("tax"),serviceChargeRate:value("service")})});
-    await loadReservationOrders(); await loadReservations(); showToast("Server-calculated bill updated.","success");
+    await loadReservationOrders(); await loadReservations(); await loadOrderLedger(); showToast("Server-calculated bill updated.","success");
 }
 
 async function updatePayment(id){
     const method=document.getElementById(`payment-${id}`).value;
     const amountPaid=Number(document.getElementById(`amount-paid-${id}`).value);
     await orderApi(`/orders/${id}/payment`,{method:"PUT",body:JSON.stringify({amountPaid,paymentMethod:method||null})});
-    await loadReservationOrders(); showToast(amountPaid ? "Payment recorded." : "Payment cleared.","success");
+    await loadReservationOrders(); await loadReservations(); await loadOrderLedger(); showToast(amountPaid ? "Payment recorded." : "Payment cleared.","success");
 }
 
 function printReceipt(){
@@ -4544,7 +4544,7 @@ async function loadReservationOrders(){
     const data=await orderApi(`/reservations/${currentReservationId}/orders`);
     window.currentReservationOrders=data.orders;
     const target=document.getElementById("reservationOrders");
-    target.innerHTML=data.orders.length ? data.orders.map(order => `<section class="order-card"><div><strong>Order ${order.orderNumber} / KOT ${order.id}</strong> <span class="order-status">${escapeHtml(order.status)} · ${escapeHtml(order.paymentStatus.replace("_"," "))}</span></div>${order.items.map(item=>`<div class="order-line"><span>${escapeHtml(item.itemName)}${item.notes?`<br><small>${escapeHtml(item.notes)}</small>`:""}</span><span>${item.quantity} × ${formatCurrency(item.unitPrice)}</span><span>${formatCurrency(item.lineTotal)}</span></div>`).join("")}<div>Subtotal ${formatCurrency(order.subtotal)} · Discount ${formatCurrency(order.discountAmount)} · Tax ${formatCurrency(order.taxAmount)} · Service ${formatCurrency(order.serviceChargeAmount)}</div><div class="order-total">Grand total ${formatCurrency(order.grandTotal)}</div>${order.notes?`<p><strong>Kitchen:</strong> ${escapeHtml(order.notes)}</p>`:""}<div class="order-actions billing-controls"><label>Discount % <input id="discount-${order.id}" type="number" min="0" max="100" step="0.01" value="${order.discountPercent}"></label><label>Tax % <input id="tax-${order.id}" type="number" min="0" max="100" step="0.01" value="${order.taxRate}"></label><label>Service % <input id="service-${order.id}" type="number" min="0" max="100" step="0.01" value="${order.serviceChargeRate}"></label><button type="button" onclick="updateBilling(${order.id})">Update bill</button></div><div class="order-actions payment-controls">${["draft","new"].includes(order.status)?`<button type="button" onclick="editOrder(${order.id})">Edit</button>`:""}${order.status==="draft"?`<button type="button" onclick="submitOrder(${order.id})">Send KOT</button>`:""}<label>Amount paid <input id="amount-paid-${order.id}" type="number" min="0" max="${order.grandTotal}" step="0.01" value="${order.amountPaid}"></label><select id="payment-${order.id}"><option value="">Select method</option><option value="cash" ${order.paymentMethod==="cash"?"selected":""}>Cash</option><option value="card" ${order.paymentMethod==="card"?"selected":""}>Card</option><option value="upi" ${order.paymentMethod==="upi"?"selected":""}>UPI</option><option value="other" ${order.paymentMethod==="other"?"selected":""}>Other</option></select><button type="button" onclick="updatePayment(${order.id})">Save payment</button></div><div><strong>Paid:</strong> ${formatCurrency(order.amountPaid)} · <strong>Balance:</strong> ${formatCurrency(order.remainingBalance)}</div></section>`).join("") + `<div class="order-total">Reservation total ${formatCurrency(data.billTotal)} · Paid ${formatCurrency(data.amountPaid)} · Balance ${formatCurrency(data.remainingBalance)}</div><div class="order-actions"><button type="button" onclick="printReceipt()">Print itemized receipt</button></div>` : "<p>No itemized orders yet.</p>";
+    target.innerHTML=data.orders.length ? data.orders.map(order => `<section class="order-card"><div class="order-card-header"><div><span class="order-reference">ORD-${String(order.id).padStart(4,"0")}</span><strong>RSV-${String(order.reservationId).padStart(4,"0")} · Course ${String(order.orderNumber).padStart(2,"0")}</strong></div><div><span class="order-status">${escapeHtml(order.status)}</span><span class="payment-status">${escapeHtml(order.paymentStatus.replace("_"," "))}</span></div></div>${order.notes?.startsWith("Customer pre-order")?`<div class="customer-preorder-badge">Customer pre-order · Review before sending to kitchen</div>`:""}<div class="order-lines-heading"><span>Dish</span><span>Quantity × price</span><span>Amount</span></div>${order.items.map(item=>`<div class="order-line"><span><strong>${escapeHtml(item.itemName)}</strong>${item.notes?`<br><small>${escapeHtml(item.notes)}</small>`:""}</span><span>${item.quantity} × ${formatCurrency(item.unitPrice)}</span><span>${formatCurrency(item.lineTotal)}</span></div>`).join("")}<div class="order-financial-strip"><span>Subtotal <strong>${formatCurrency(order.subtotal)}</strong></span><span>Discount <strong>${formatCurrency(order.discountAmount)}</strong></span><span>Tax <strong>${formatCurrency(order.taxAmount)}</strong></span><span>Service <strong>${formatCurrency(order.serviceChargeAmount)}</strong></span><span>Total <strong>${formatCurrency(order.grandTotal)}</strong></span></div>${order.notes&&!order.notes.startsWith("Customer pre-order")?`<p class="kitchen-note"><strong>Kitchen:</strong> ${escapeHtml(order.notes)}</p>`:""}<details class="order-controls"><summary>Billing, payment &amp; KOT controls</summary><div class="order-actions billing-controls"><label>Discount % <input id="discount-${order.id}" type="number" min="0" max="100" step="0.01" value="${order.discountPercent}"></label><label>Tax % <input id="tax-${order.id}" type="number" min="0" max="100" step="0.01" value="${order.taxRate}"></label><label>Service % <input id="service-${order.id}" type="number" min="0" max="100" step="0.01" value="${order.serviceChargeRate}"></label><button type="button" onclick="updateBilling(${order.id})">Update bill</button></div><div class="order-actions payment-controls">${["draft","new"].includes(order.status)?`<button type="button" onclick="editOrder(${order.id})">Edit order</button>`:""}${order.status==="draft"?`<button type="button" onclick="submitOrder(${order.id})">Send KOT</button>`:""}<label>Amount paid <input id="amount-paid-${order.id}" type="number" min="0" max="${order.grandTotal}" step="0.01" value="${order.amountPaid}"></label><select id="payment-${order.id}"><option value="">Payment method</option><option value="cash" ${order.paymentMethod==="cash"?"selected":""}>Cash</option><option value="card" ${order.paymentMethod==="card"?"selected":""}>Card</option><option value="upi" ${order.paymentMethod==="upi"?"selected":""}>UPI</option><option value="other" ${order.paymentMethod==="other"?"selected":""}>Other</option></select><button type="button" onclick="updatePayment(${order.id})">Save payment</button></div></details><div class="order-balance"><span>Paid ${formatCurrency(order.amountPaid)}</span><strong>Balance ${formatCurrency(order.remainingBalance)}</strong></div></section>`).join("") + `<div class="reservation-financial-total"><span>Reservation total ${formatCurrency(data.billTotal)}</span><span>Paid ${formatCurrency(data.amountPaid)}</span><strong>Balance ${formatCurrency(data.remainingBalance)}</strong></div><div class="order-actions"><button type="button" onclick="printReceipt()">Print itemized receipt</button></div>` : "<div class='ledger-empty'><strong>No itemized orders yet</strong><p>Customer pre-orders appear automatically. Staff can also create an order below.</p></div>";
 }
 
 /* ==================================================
@@ -6279,6 +6279,6 @@ if(
 
 </script>
 
-<script src="ui.js?v=day18-world-class-20260829"></script>
+<script src="ui.js?v=admin-operations-final-20260830"></script>
 </body>
 </html>

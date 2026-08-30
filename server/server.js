@@ -321,6 +321,11 @@ for (const [name, definition] of [
     if (!orderColumns.has(name)) db.exec(`ALTER TABLE orders ADD COLUMN ${name} ${definition}`);
 }
 
+const staffColumns = new Set(db.prepare("PRAGMA table_info(staff_users)").all().map(column => column.name));
+if (!staffColumns.has("lastLoginAt")) {
+    db.exec("ALTER TABLE staff_users ADD COLUMN lastLoginAt TEXT");
+}
+
 // ==================================================
 // EXPRESS SETTINGS
 // ==================================================
@@ -488,7 +493,7 @@ const RESERVATION_WINDOW_MS =
     10 * 60 * 1000;
 
 const RESERVATION_MAX_ATTEMPTS =
-    5;
+    Number(process.env.RESERVATION_MAX_ATTEMPTS) || 5;
 
 
 // ==================================================
@@ -1196,10 +1201,10 @@ app.post("/staff/login", async (req, res) => {
     if (rateLimited(staffLoginAttempts, clientKey, LOGIN_MAX_ATTEMPTS, LOGIN_WINDOW_MS)) {
         return res.status(429).json({ success: false, message: "Too many login attempts. Please try again later." });
     }
-    const username = clean(req.body?.username, 100);
+    const username = clean(req.body?.username, 100).toLowerCase();
     const password = String(req.body?.password || "");
     const portal = clean(req.body?.portal, 20).toLowerCase();
-    const staff = db.prepare("SELECT * FROM staff_users WHERE username = ?").get(username);
+    const staff = db.prepare("SELECT * FROM staff_users WHERE LOWER(username) = ?").get(username);
     if (!staff || !staff.active || (portal === "chef" && staff.role !== "chef") || !(await bcrypt.compare(password, staff.passwordHash))) {
         return res.status(401).json({ success: false, message: "Invalid username or password." });
     }
@@ -1218,7 +1223,7 @@ app.get("/staff", authenticateAdmin, (req, res) => {
 
 app.post("/staff", authenticateAdmin, async (req, res) => {
     const name = clean(req.body?.name, 100);
-    const username = clean(req.body?.username, 100);
+    const username = clean(req.body?.username, 100).toLowerCase();
     const password = String(req.body?.password || "");
     const role = clean(req.body?.role, 20);
     if (!name || !username || password.length < 8 || !["admin", "chef"].includes(role)) {
@@ -1239,7 +1244,7 @@ app.put("/staff/:id", authenticateAdmin, async (req, res) => {
     const existing = db.prepare("SELECT * FROM staff_users WHERE id = ?").get(id);
     if (!existing) return res.status(404).json({ success: false, message: "Staff member not found." });
     const name = req.body?.name === undefined ? existing.name : clean(req.body.name, 100);
-    const username = req.body?.username === undefined ? existing.username : clean(req.body.username, 100);
+    const username = req.body?.username === undefined ? existing.username : clean(req.body.username, 100).toLowerCase();
     const role = req.body?.role === undefined ? existing.role : clean(req.body.role, 20);
     const active = req.body?.active === undefined ? existing.active : (req.body.active ? 1 : 0);
     if (!name || !username || !["admin", "chef"].includes(role)) return res.status(400).json({ success: false, message: "Valid name, username, and role are required." });
@@ -1542,7 +1547,7 @@ app.get(
                 "Royal Table backend is running!",
 
             version:
-                "customer-preorder-20260829"
+                "admin-operations-final-20260830"
 
         });
 
@@ -2464,9 +2469,14 @@ app.get(
                     .prepare(
                         `
 
-                        SELECT *
+                        SELECT
+                            r.*,
+                            (SELECT COUNT(*) FROM orders o WHERE o.reservationId = r.id AND o.status != 'cancelled') AS orderCount,
+                            (SELECT COUNT(*) FROM orders o WHERE o.reservationId = r.id AND o.status = 'draft') AS draftOrderCount,
+                            (SELECT COUNT(*) FROM orders o WHERE o.reservationId = r.id AND o.status IN ('new','accepted','preparing','ready')) AS activeKotCount,
+                            COALESCE((SELECT ROUND(SUM(o.amountPaid), 2) FROM orders o WHERE o.reservationId = r.id AND o.status != 'cancelled'), 0) AS amountPaid
 
-                        FROM reservations
+                        FROM reservations r
 
                         ORDER BY
                             date ASC,
@@ -2509,6 +2519,21 @@ app.get(
 
     }
 );
+
+app.get("/orders", authenticateAdmin, (req, res) => {
+    try {
+        const rows = db.prepare(`
+            SELECT o.id
+            FROM orders o
+            JOIN reservations r ON r.id = o.reservationId
+            ORDER BY r.date DESC, r.time DESC, o.reservationId DESC, o.orderNumber ASC
+        `).all();
+        res.json({ success: true, orders: rows.map(row => orderWithItems(row.id)) });
+    } catch (error) {
+        console.error("Order ledger error:", error.message);
+        res.status(500).json({ success: false, message: "Failed to load the order ledger." });
+    }
+});
 
 // ==================================================
 // ADMIN DASHBOARD

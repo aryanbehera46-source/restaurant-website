@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Royal Table | Chef Operations</title>
-  <link rel="stylesheet" href="ui.css?v=day18-world-class-20260829">
+  <link rel="stylesheet" href="ui.css?v=admin-operations-final-20260830">
   <style>
     :root { color-scheme: dark; --bg:#14110e; --panel:#211b16; --text:#f7efe3; --muted:#c9b9a5; --gold:#d7a64a; --danger:#e67b70; }
     * { box-sizing:border-box } body { margin:0; background:var(--bg); color:var(--text); font:16px system-ui,sans-serif } main { max-width:1200px; margin:auto; padding:24px }
@@ -70,6 +70,6 @@ $("refresh").onclick=()=>load().catch(showError); $("serviceDate").onchange=()=>
 function showError(e){if(e.status===401||/session|Authentication/i.test(e.message)){clearSession();$("appPanel").classList.add("hidden");$("loginPanel").classList.remove("hidden");$("loginMessage").textContent="Your session expired. Please sign in again.";return;}alert(e.message);} function showApp(){if(staff?.role!=="chef"){clearSession();return;}$("loginPanel").classList.add("hidden");$("appPanel").classList.remove("hidden");$("greeting").textContent=`Signed in as ${staff.name}`;$("serviceDate").value=today();load().catch(showError);}
 if(token&&staff?.role==="chef")showApp();else if(token||staff)clearSession();
 </script>
-<script src="ui.js?v=day18-world-class-20260829"></script>
+<script src="ui.js?v=admin-operations-final-20260830"></script>
 </body>
 </html>
