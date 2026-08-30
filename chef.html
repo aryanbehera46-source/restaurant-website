@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Royal Table | Chef Operations</title>
-  <link rel="stylesheet" href="ui.css?v=admin-operations-final-20260830">
+  <link rel="stylesheet" href="ui.css?v=day18-final-acceptance-20260830">
   <style>
     :root { color-scheme: dark; --bg:#14110e; --panel:#211b16; --text:#f7efe3; --muted:#c9b9a5; --gold:#d7a64a; --danger:#e67b70; }
     * { box-sizing:border-box } body { margin:0; background:var(--bg); color:var(--text); font:16px system-ui,sans-serif } main { max-width:1200px; margin:auto; padding:24px }
@@ -20,8 +20,10 @@
 <main>
   <section id="loginPanel" class="card" style="max-width:440px;margin:8vh auto">
     <h1>Chef Operations</h1><p class="muted">Royal Table kitchen workspace</p>
-    <form id="loginForm" class="grid"><input id="username" required autocomplete="username" placeholder="Username"><input id="password" required type="password" autocomplete="current-password" placeholder="Password"><button>Sign in</button></form>
+    <p class="muted">Use a Chef account. Administrator usernames are intentionally kept separate.</p>
+    <form id="loginForm" class="grid"><input id="username" required autocomplete="username" placeholder="Chef username"><input id="password" required type="password" autocomplete="current-password" placeholder="Chef password"><button>Sign in</button></form>
     <p id="loginMessage" class="warn"></p>
+    <a class="muted" href="staff.html">Manage Chef access</a>
   </section>
   <section id="appPanel" class="hidden">
     <div class="row"><div><h1>Kitchen Dashboard</h1><div id="greeting" class="muted"></div></div><span style="flex:1"></span><input id="serviceDate" type="date"><button class="secondary" id="refresh">Refresh</button><button class="secondary" id="logout">Logout</button></div>
@@ -70,6 +72,6 @@ $("refresh").onclick=()=>load().catch(showError); $("serviceDate").onchange=()=>
 function showError(e){if(e.status===401||/session|Authentication/i.test(e.message)){clearSession();$("appPanel").classList.add("hidden");$("loginPanel").classList.remove("hidden");$("loginMessage").textContent="Your session expired. Please sign in again.";return;}alert(e.message);} function showApp(){if(staff?.role!=="chef"){clearSession();return;}$("loginPanel").classList.add("hidden");$("appPanel").classList.remove("hidden");$("greeting").textContent=`Signed in as ${staff.name}`;$("serviceDate").value=today();load().catch(showError);}
 if(token&&staff?.role==="chef")showApp();else if(token||staff)clearSession();
 </script>
-<script src="ui.js?v=admin-operations-final-20260830"></script>
+<script src="ui.js?v=day18-final-acceptance-20260830"></script>
 </body>
 </html>

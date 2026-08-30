@@ -1547,7 +1547,7 @@ app.get(
                 "Royal Table backend is running!",
 
             version:
-                "admin-operations-final-20260830"
+                "day18-final-acceptance-20260830"
 
         });
 
@@ -2479,9 +2479,17 @@ app.get(
                         FROM reservations r
 
                         ORDER BY
+                            CASE LOWER(status)
+                                WHEN 'new' THEN 0
+                                WHEN 'confirmed' THEN 1
+                                WHEN 'completed' THEN 2
+                                WHEN 'cancelled' THEN 3
+                                ELSE 2
+                            END ASC,
+                            CASE WHEN LOWER(status) = 'new' THEN datetime(createdAt) END DESC,
                             date ASC,
                             time ASC,
-                            createdAt DESC
+                            id DESC
 
                         `
                     )

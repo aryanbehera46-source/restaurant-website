@@ -48,7 +48,11 @@ One reservation can have several orders. Each submitted order becomes a KOT and 
 1. Install dependencies in `server/` with `npm install`.
 2. Configure the variables documented in `.env.example` or the deployment dashboard. Never commit real secrets.
 3. Start the API with `npm start` from `server/`.
-4. Run `npm test` and `npm run test:day18`.
+4. Run `npm test`, `npm run test:day18`, `npm run test:final-qa`, and `npm run test:week-demo`.
+
+### Local seven-day demo data
+
+From `server/`, run `npm run seed:local-week` only when the configured `DB_PATH` points to a disposable local database. It creates a seven-day reservation, order, KOT, payment, inventory, grocery, task, and Chef-access demonstration. The seed refuses production mode, Render, and `/var/data` databases; it sends no email and must never be used against the live database.
 
 ## Deployment
 

@@ -9,7 +9,8 @@
     "test": "node day17-smoke-test.js",
     "test:day18": "node day18-smoke-test.js",
     "test:final-qa": "node final-qa-test.js",
-    "test:week-demo": "node week-business-demo-test.js"
+    "test:week-demo": "node week-business-demo-test.js",
+    "seed:local-week": "node seed-local-week-demo.js"
   },
   "keywords": [],
   "author": "",

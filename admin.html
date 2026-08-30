@@ -10,7 +10,7 @@
 >
 
 <title>Royal Table — Admin Dashboard</title>
-<link rel="stylesheet" href="ui.css?v=admin-operations-final-20260830">
+<link rel="stylesheet" href="ui.css?v=day18-final-acceptance-20260830">
 
 <style>
 
@@ -1413,6 +1413,8 @@ tr:hover{
 .billing-controls label,.payment-controls label{display:flex;align-items:center;gap:5px}.billing-controls input,.payment-controls input{width:90px}@media print{body *{visibility:hidden}.reservation-modal,.reservation-modal *{visibility:visible}.reservation-modal{position:absolute;inset:0;background:#fff}.modal-close,.order-builder,.order-actions,.bill-editor{display:none!important}.order-card{break-inside:avoid;box-shadow:none}.modal-content{max-height:none;overflow:visible;box-shadow:none}}
 .billing-section{padding:30px;border:1px solid #e1d7c9;border-radius:16px;background:#fff;box-shadow:0 12px 30px rgba(51,39,25,.07)}
 .operations-mini-list{display:grid;margin:18px 0;border-top:1px solid #e4dacd}.operations-mini-list div{display:flex;justify-content:space-between;gap:14px;padding:10px 0;border-bottom:1px solid #eee5da;color:#776d64;font-size:12px}.operations-mini-list strong{color:#30271f;text-transform:capitalize}.operations-grid{align-items:stretch}.operations-card{display:flex;flex-direction:column}.operations-card .operations-link{margin-top:auto}
+.operations-link{white-space:nowrap}.week-operations{margin:0 0 18px;padding:22px;border:1px solid #e1d7c9;border-radius:14px;background:#fff}.week-operations-header{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:16px}.week-operations-header p{margin:4px 0 0;color:#776d64}.week-operations-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}.week-day{padding:14px;border:1px solid #e7ddd0;border-radius:10px;background:#fbf8f3}.week-day strong,.week-day span{display:block}.week-day strong{margin:5px 0;color:#28211b}.week-day span{color:#766b60;font-size:11px;line-height:1.5}.week-day .week-date{color:#98631b;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}@media(max-width:1200px){.week-operations-grid{grid-template-columns:repeat(4,1fr)}}@media(max-width:700px){.week-operations-grid{grid-template-columns:1fr 1fr}.week-operations-header{align-items:flex-start;flex-direction:column}}
+.menu-table{min-width:100%!important;table-layout:fixed}.menu-table th:nth-child(1){width:6%}.menu-table th:nth-child(2){width:10%}.menu-table th:nth-child(3){width:19%}.menu-table th:nth-child(4){width:12%}.menu-table th:nth-child(5){width:25%}.menu-table th:nth-child(6){width:9%}.menu-table th:nth-child(7){width:10%}.menu-table th:nth-child(8){width:9%}.menu-table td{overflow-wrap:anywhere}.menu-table td:last-child .action-buttons{flex-direction:column;align-items:stretch}.menu-table td:last-child button,.menu-table td:last-child summary{width:100%}
 .modal-box{max-width:1120px!important}.modal-header{background:#1c1814!important}.modal-header h2{color:#fff!important}.modal-body{background:#f7f3ed!important}.details-grid{grid-template-columns:repeat(4,1fr)!important;gap:12px!important}.detail-item{padding:15px!important;border:1px solid #e5dbce!important;border-radius:10px!important;background:#fff!important;box-shadow:none!important}.detail-item.full-width{grid-column:1/-1}.order-builder{background:#fbf8f3!important;border-color:#ded1bf!important}.order-card{padding:0!important;overflow:hidden;border:1px solid #ded3c5!important;border-radius:13px!important;background:#fff!important}.order-card-header{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:18px 20px;background:#211c18;color:#fff}.order-card-header>div{display:flex;align-items:center;gap:12px}.order-reference{color:#efbd63;font-size:13px;font-weight:800;letter-spacing:.06em}.payment-status{padding:5px 8px;border-radius:999px;background:#f1e8dc;color:#5d5145;font-size:11px;font-weight:800;text-transform:uppercase}.customer-preorder-badge{padding:10px 20px;background:#fff4d8;color:#835b11;font-size:12px;font-weight:800}.order-lines-heading,.order-line{display:grid;grid-template-columns:1fr 160px 120px;gap:14px;padding:11px 20px}.order-lines-heading{color:#83776a;background:#faf7f2;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}.order-line{border-bottom:1px solid #eee6dc!important}.order-line>:last-child{text-align:right}.order-financial-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:#e6ddd2}.order-financial-strip span{padding:12px;background:#faf7f2;color:#7a6d61;font-size:11px}.order-financial-strip strong{display:block;margin-top:4px;color:#2f271f;font-size:14px}.order-controls{margin:16px 20px;border:1px solid #dfd4c7;border-radius:9px}.order-controls summary{padding:12px 14px;cursor:pointer;color:#6b5e51;font-size:12px;font-weight:800}.order-controls>div{padding:0 14px 14px}.order-balance,.reservation-financial-total{display:flex;justify-content:flex-end;gap:22px;padding:14px 20px;background:#f6f1e9;color:#65594d}.reservation-financial-total{margin-top:14px;border-radius:10px}.kitchen-note{margin:14px 20px;color:#65594d}
 .billing-summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:22px 0}.billing-summary-grid article{padding:18px;border:1px solid #e7ddd0;border-radius:12px;background:#fbf8f3}.billing-summary-grid span,.ledger-order span,.cell-subline{display:block;color:#7a7066;font-size:12px;line-height:1.45}.billing-summary-grid strong{display:block;margin-top:8px;color:#1f1a16;font-size:23px}.order-ledger{display:grid;gap:10px}.ledger-order{display:grid;grid-template-columns:140px 1.1fr 1.4fr 130px 150px auto;gap:18px;padding:18px;align-items:center;border:1px solid #e7ddd0;border-radius:12px;background:#fff}.ledger-order>div{min-width:0}.ledger-order strong{color:#211c18}.ledger-order div:nth-child(3) span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ledger-identity strong,.record-id{color:#98631b!important;font-variant-numeric:tabular-nums;letter-spacing:.03em}.ledger-money{text-align:right}.ledger-empty,.operations-relogin{padding:28px;text-align:center;border:1px dashed #d8cbb9;border-radius:12px;background:#fbf8f3}.cell-subline{margin-top:5px}.table-wrapper{border:1px solid #e4dacd!important;border-radius:14px!important}.table-wrapper table{min-width:1080px!important}.table-wrapper th,.table-wrapper td{padding:15px 16px!important}.table-wrapper tbody tr{height:auto!important}.table-wrapper .action-buttons{flex-wrap:nowrap;align-items:center}.table-wrapper .action-buttons button,.row-menu summary{min-height:36px!important;padding:8px 11px!important;font-size:12px!important;white-space:nowrap}.row-menu{position:relative}.row-menu summary{display:grid;place-items:center;border:1px solid #d6c8b6;border-radius:8px;cursor:pointer;list-style:none;color:#65594c;background:#fff}.row-menu[open] div{position:absolute;right:0;z-index:20;display:grid;min-width:120px;padding:8px;gap:6px;border:1px solid #ded3c5;border-radius:10px;background:#fff;box-shadow:0 14px 32px rgba(42,31,20,.16)}
 @media(max-width:1200px){.billing-summary-grid{grid-template-columns:repeat(2,1fr)}.ledger-order{grid-template-columns:1fr 1fr}.ledger-order button{justify-self:start}.details-grid{grid-template-columns:repeat(2,1fr)!important}}@media(max-width:620px){.billing-summary-grid,.ledger-order,.details-grid{grid-template-columns:1fr!important}.billing-section{padding:20px}.ledger-money{text-align:left}.order-card-header,.order-card-header>div,.order-balance,.reservation-financial-total{align-items:flex-start;flex-direction:column}.order-lines-heading{display:none}.order-line{grid-template-columns:1fr}.order-line>:last-child{text-align:left}.order-financial-strip{grid-template-columns:1fr 1fr}}
@@ -2150,6 +2152,14 @@ tr:hover{
             </div>
             <button type="button" onclick="loadOperations()">Refresh Operations</button>
         </div>
+
+        <section class="week-operations" aria-labelledby="weekOperationsTitle">
+            <div class="week-operations-header">
+                <div><h3 id="weekOperationsTitle">Seven-day service command centre</h3><p>Reservations, covers, orders, KOT stage and billed revenue for the current operating week.</p></div>
+                <strong id="weekOperationsTotal">Loading week…</strong>
+            </div>
+            <div class="week-operations-grid" id="weekOperationsGrid"></div>
+        </section>
 
         <div class="operations-grid">
             <article class="operations-card">
@@ -3053,19 +3063,23 @@ async function loadOperations(){
 
     try{
 
-        const [staffResponse, kitchenResponse, inventoryResponse, groceryResponse] =
+        const [staffResponse, kitchenResponse, inventoryResponse, groceryResponse, reservationsResponse, ordersResponse] =
             await Promise.all([
                 fetch(`${API_URL}/staff`, { headers:getAuthHeaders() }),
                 fetch(`${API_URL}/chef/dashboard?date=${encodeURIComponent(today)}`, { headers:getAuthHeaders() }),
                 fetch(`${API_URL}/ingredients`, { headers:getAuthHeaders() }),
-                fetch(`${API_URL}/grocery`, { headers:getAuthHeaders() })
+                fetch(`${API_URL}/grocery`, { headers:getAuthHeaders() }),
+                fetch(`${API_URL}/reservations`, { headers:getAuthHeaders() }),
+                fetch(`${API_URL}/orders`, { headers:getAuthHeaders() })
             ]);
 
         const responses = [
             staffResponse,
             kitchenResponse,
             inventoryResponse,
-            groceryResponse
+            groceryResponse,
+            reservationsResponse,
+            ordersResponse
         ];
 
         if(responses.some(response => response.status === 401 || response.status === 403)){
@@ -3078,13 +3092,30 @@ async function loadOperations(){
             throw new Error("Operational data is unavailable.");
         }
 
-        const [staffData, kitchenData, inventoryData, groceryData] =
+        const [staffData, kitchenData, inventoryData, groceryData, reservationsData, ordersData] =
             await Promise.all([
                 staffResponse.json(),
                 kitchenResponse.json(),
                 inventoryResponse.json(),
-                groceryResponse.json()
+                groceryResponse.json(),
+                reservationsResponse.json(),
+                ordersResponse.json()
             ]);
+
+        const weekDates = Array.from({length:7},(_,index)=>{
+            const date = new Date(`${today}T12:00:00`);
+            date.setDate(date.getDate()+index);
+            return date.toISOString().slice(0,10);
+        });
+        const weekReservations = Array.isArray(reservationsData.reservations) ? reservationsData.reservations : [];
+        const weekOrders = Array.isArray(ordersData.orders) ? ordersData.orders : [];
+        const weekRows = weekDates.map(date=>{
+            const reservations = weekReservations.filter(item=>item.date===date && String(item.status).toLowerCase()!=="cancelled");
+            const orders = weekOrders.filter(item=>item.date===date && item.status!=="cancelled");
+            return {date,reservations:reservations.length,covers:reservations.reduce((sum,item)=>sum+Number(item.guests||0),0),orders:orders.length,revenue:orders.reduce((sum,item)=>sum+Number(item.grandTotal||0),0),stages:[...new Set(orders.map(item=>item.status))]};
+        });
+        document.getElementById("weekOperationsTotal").textContent = `${weekRows.reduce((sum,row)=>sum+row.reservations,0)} reservations · ${weekRows.reduce((sum,row)=>sum+row.covers,0)} covers · ${weekRows.reduce((sum,row)=>sum+row.orders,0)} orders`;
+        document.getElementById("weekOperationsGrid").innerHTML = weekRows.map(row=>`<article class="week-day"><span class="week-date">${escapeHtml(row.date)}</span><strong>${row.reservations} reservation${row.reservations===1?"":"s"}</strong><span>${row.covers} covers · ${row.orders} orders</span><span>${formatCurrency(row.revenue)} billed</span><span>${row.stages.length?row.stages.map(escapeHtml).join(" · "):"No KOT activity"}</span></article>`).join("");
 
         const activeStaff =
             staffData.staff.filter(member => Number(member.active) === 1);
@@ -4358,7 +4389,7 @@ function showReservationDetails(
     document
     .getElementById("detailId")
     .textContent =
-        reservation.id ||
+        reservation.id ? `RSV-${String(reservation.id).padStart(4,"0")}` :
         "-";
 
 
@@ -5189,33 +5220,13 @@ async function loadMenu(){
                             </button>
 
 
-                            <button
-                                class="menu-toggle-button"
-                                onclick="toggleMenuAvailability(
-                                    ${item.id},
-                                    ${!available}
-                                )"
-                            >
-
-                                ${
-                                    available
-                                    ?
-                                    "Disable"
-                                    :
-                                    "Enable"
-                                }
-
-                            </button>
-
-
-                            <button
-                                class="menu-delete-button"
-                                onclick="deleteMenuItem(
-                                    ${item.id}
-                                )"
-                            >
-                                Delete
-                            </button>
+                            <details class="row-menu">
+                                <summary>More</summary>
+                                <div>
+                                    <button class="menu-toggle-button" onclick="toggleMenuAvailability(${item.id},${!available})">${available ? "Disable" : "Enable"}</button>
+                                    <button class="menu-delete-button" onclick="deleteMenuItem(${item.id})">Delete</button>
+                                </div>
+                            </details>
 
                         </div>
 
@@ -6279,6 +6290,6 @@ if(
 
 </script>
 
-<script src="ui.js?v=admin-operations-final-20260830"></script>
+<script src="ui.js?v=day18-final-acceptance-20260830"></script>
 </body>
 </html>
